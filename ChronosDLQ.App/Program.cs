@@ -25,6 +25,9 @@ builder.Services.AddSingleton<IMessageIndexStore, MessageIndexStore>();
 // Registering RabbitMQ low level core consumer engine
 builder.Services.AddSingleton<IMessageBrokerConsumer, RabbitMqConsumer>();
 
+// Registering ops business engine for replaying corrected payloads
+builder.Services.AddScoped<IMessageReplayService, MessageReplayService>();
+
 // Continuous long running bg service
 builder.Services.AddHostedService<QueueConsumerWorker>();
 
