@@ -5,9 +5,9 @@ namespace ChronosDLQ.App.Models;
 /// </summary>
 public class DeadLetterMessage
 {
-   public string MessageId {get; set; } = string.Empty;
-   public string QueueName {get; set;} = string.Empty;
-   public string RawPayload {get; set; } = string.Empty;
-   public string ExceptionMessage {get; set;} = string.Empty;
-   public Dictionary<string, string> Metadata  {get; set;}  = new();
+    public string MessageId { get; set; } = string.Empty;
+    public string QueueName { get; set; } = string.Empty;
+    public string RawPayload { get; set; } = string.Empty;
+    public string ExceptionMessage { get; set; } = string.Empty;
+    public Dictionary<string, string> Metadata { get; set; } = new();
 }

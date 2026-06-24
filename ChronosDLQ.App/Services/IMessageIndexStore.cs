@@ -7,8 +7,8 @@ namespace ChronosDLQ.App.Services;
 /// </summary>
 public interface IMessageIndexStore
 {
-   void AddOrUpdate(DeadLetterMessage message);
-   IEnumerable<DeadLetterMessage> GetAll();
-   DeadLetterMessage? GetById(string messageId);
-   void Remove(string messageId);
+    void AddOrUpdate(DeadLetterMessage message);
+    IEnumerable<DeadLetterMessage> GetAll();
+    DeadLetterMessage? GetById(string messageId);
+    void Remove(string messageId);
 }
