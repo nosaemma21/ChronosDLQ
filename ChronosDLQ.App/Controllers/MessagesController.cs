@@ -9,10 +9,12 @@ using Newtonsoft.Json;
 public class MessagesController : ControllerBase
 {
     private readonly IMessageIndexStore _indexStore;
+    private readonly IMessageReplayService _replayService;
 
-    public MessagesController(IMessageIndexStore indexStore)
+    public MessagesController(IMessageIndexStore indexStore, IMessageReplayService replayService)
     {
         _indexStore = indexStore;
+        _replayService = replayService;
     }
 
     [HttpGet]
@@ -71,5 +73,22 @@ public class MessagesController : ControllerBase
                 new { message = "Failed to apply JSON patch mods", details = ex.Message }
             );
         }
+    }
+
+    [HttpPost("replay")]
+    public async Task<IActionResult> ReplayMessage([FromBody] ReplayRequest request)
+    {
+        var replayed = await _replayService.ReplayMessageAsync(
+            request.MessageId,
+            request.TargetQueue,
+            request.ModifiedPayload
+        );
+
+        if (!replayed)
+            return NotFound(
+                new { message = $"Message {request.MessageId} not found in DLQ index store" }
+            );
+
+        return Ok(new { message = "Message replayed successfully" });
     }
 }

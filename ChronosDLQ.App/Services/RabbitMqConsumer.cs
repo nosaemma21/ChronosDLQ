@@ -90,15 +90,14 @@ class RabbitMqConsumer : IMessageBrokerConsumer
             {
                 _logger.LogError(ex, "Failed processing incoming dead-letter message payload");
             }
-
-            // Start listening on queue stream
-            await _channel.BasicConsumeAsync(
-                queue: queueName,
-                autoAck: false,
-                consumer: consumer,
-                cancellationToken: cancellationToken
-            );
         };
+        // Start listening on queue stream
+        await _channel.BasicConsumeAsync(
+            queue: queueName,
+            autoAck: false,
+            consumer: consumer,
+            cancellationToken: cancellationToken
+        );
     }
 
     public async Task StopConsumingAsync(CancellationToken cancellationToken)

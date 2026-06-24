@@ -34,7 +34,7 @@ public class MessageReplayService : IMessageReplayService
         try
         {
             // open a temp channel to send corrected payload back to queue
-            var factory = new ConnectionFactory { HostName = "locahost" };
+            var factory = new ConnectionFactory { HostName = "localhost" };
             using var connection = await factory.CreateConnectionAsync();
             using var channel = await connection.CreateChannelAsync();
 
