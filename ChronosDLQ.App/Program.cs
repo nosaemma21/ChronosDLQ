@@ -1,4 +1,5 @@
 using ChronosDLQ.App.Services;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +17,9 @@ builder.Host.UseSerilog();
 
 builder.Services.AddControllers();
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 builder.Services.AddSingleton<IMessageIndexStore, MessageIndexStore>();
 
 // Registering RabbitMQ low level core consumer engine
@@ -26,8 +30,15 @@ builder.Services.AddHostedService<QueueConsumerWorker>();
 
 var app = builder.Build();
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 app.UseAuthorization();
 app.UseHttpsRedirection();
+app.MapControllers();
 
 try
 {
