@@ -15,7 +15,7 @@ Log.Logger = new LoggerConfiguration()
 // Using serilog as our default logger
 builder.Host.UseSerilog();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddNewtonsoftJson();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
