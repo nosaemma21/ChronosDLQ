@@ -14,11 +14,6 @@ public class MessageIndexStore : IMessageIndexStore
     /// </summary>
     private readonly ConcurrentDictionary<string, DeadLetterMessage> _cache = new();
 
-    public MessageIndexStore(ConcurrentDictionary<string, DeadLetterMessage> cache)
-    {
-        _cache = cache;
-    }
-
     /// <summary>
     /// Will add a dead letter message to the cache
     /// </summary>
