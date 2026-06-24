@@ -4,7 +4,7 @@ import {
   type ReplayRequest,
 } from "../types";
 
-const BASE_URL = "https://localhost:5103/api";
+const BASE_URL = "http://localhost:5103/api";
 
 export const api = {
   // Fetching all dead letter messages
