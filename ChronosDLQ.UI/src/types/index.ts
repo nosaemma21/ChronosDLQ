@@ -1,0 +1,27 @@
+export interface DeadLetterMessage {
+  messageId: string;
+  queueName: string;
+  rawPayload: string;
+  exceptionMessage?: string;
+  timestamp: string;
+}
+
+export interface ReplayRequest {
+  messageId: string;
+  targetQueue: string;
+  modifiedPayload: string;
+}
+
+export type JsonValue =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: JsonValue }
+  | JsonValue[];
+
+export interface JsonPatchOperation {
+  op: "add" | "remove" | "replace" | "move" | "copy" | "test";
+  path: string;
+  value?: JsonValue;
+}

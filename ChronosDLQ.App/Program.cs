@@ -1,8 +1,18 @@
 using ChronosDLQ.App.Services;
-using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(
+        "ChronosUiPolicy",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:5173").AllowAnyMethod().AllowAnyHeader();
+        }
+    );
+});
 
 //Setting up serilog
 Log.Logger = new LoggerConfiguration()
@@ -39,6 +49,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseCors("ChronosUiPolicy");
 app.UseAuthorization();
 app.UseHttpsRedirection();
 app.MapControllers();
