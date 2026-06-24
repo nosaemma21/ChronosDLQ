@@ -18,6 +18,12 @@ builder.Services.AddControllers();
 
 builder.Services.AddSingleton<IMessageIndexStore, MessageIndexStore>();
 
+// Registering RabbitMQ low level core consumer engine
+builder.Services.AddSingleton<IMessageBrokerConsumer, RabbitMqConsumer>();
+
+// Continuous long running bg service
+builder.Services.AddHostedService<QueueConsumerWorker>();
+
 var app = builder.Build();
 
 app.UseAuthorization();

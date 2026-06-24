@@ -9,5 +9,6 @@ public class DeadLetterMessage
     public string QueueName { get; set; } = string.Empty;
     public string RawPayload { get; set; } = string.Empty;
     public string ExceptionMessage { get; set; } = string.Empty;
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     public Dictionary<string, string> Metadata { get; set; } = new();
 }
