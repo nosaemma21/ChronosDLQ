@@ -1,0 +1,22 @@
+## Secrets and configs
+*.user
+*.useroscaches
+*.sln.docstates
+
+## Outputs from builds
+[Dd]ebug/
+[Re]lease/
+x64/
+x86/
+bld/
+[Bb]in/
+[Oo]bj/
+
+##IDE Files
+.vs/
+.idea/
+.vscode/
+*.suo/
+*.user
+*.useroscache
+*.sln.docstates

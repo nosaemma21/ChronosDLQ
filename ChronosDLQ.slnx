@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="ChronosDLQ.App/ChronosDLQ.App.csproj" />
+  <Project Path="ChronosDLQ.Tests/ChronosDLQ.Tests.csproj" />
+</Solution>
