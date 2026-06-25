@@ -3,6 +3,7 @@ using ChronosDLQ.App.Services;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Serilog;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -90,5 +91,18 @@ public class MessagesController : ControllerBase
             );
 
         return Ok(new { message = "Message replayed successfully" });
+    }
+
+    [HttpDelete("{messageId}")]
+    public IActionResult DiscardMessage(string messageId)
+    {
+        var evicted = _indexStore.TryRemoveMessage(messageId);
+
+        if (!evicted)
+        {
+            return NotFound(new { message = "Target message could not be located" });
+        }
+        Log.Information("Removed poisoned message index: {MessageId}", messageId);
+        return Ok(new { message = "Message successfully removed" });
     }
 }

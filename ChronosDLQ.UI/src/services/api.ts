@@ -10,7 +10,7 @@ export const api = {
   // Fetching all dead letter messages
   async getMessages(): Promise<DeadLetterMessage[]> {
     const response = await fetch(`${BASE_URL}/messages`);
-    if (!response.ok) throw new Error("Failed to stream dead letter logs 😔.");
+    if (!response.ok) throw new Error("Failed to stream dead letter logs ❌.");
     return response.json();
   },
 
@@ -24,8 +24,7 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(operations),
     });
-    if (!response.ok)
-      throw new Error("Failed to commit payload patch adjustments 😔");
+    if (!response.ok) throw new Error("Failed to modify payload ❌");
     return response.json();
   },
 
@@ -35,7 +34,15 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(request),
     });
-    if (!response.ok) throw new Error("Replay engine execution failure 💔");
+    if (!response.ok) throw new Error("Replay failed ❌");
+    return response.json();
+  },
+
+  async discardMessage(messageId: string): Promise<{ message: string }> {
+    const response = await fetch(`${BASE_URL}/messages/${messageId}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) throw new Error("Failed to remove message ❌");
     return response.json();
   },
 };

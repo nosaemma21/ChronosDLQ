@@ -51,4 +51,9 @@ public class MessageIndexStore : IMessageIndexStore
     {
         _cache.TryRemove(messageId, out _);
     }
+
+    public bool TryRemoveMessage(string messsageId)
+    {
+        return _cache.TryRemove(messsageId, out _);
+    }
 }

@@ -11,4 +11,5 @@ public interface IMessageIndexStore
     IEnumerable<DeadLetterMessage> GetAll();
     DeadLetterMessage? GetById(string messageId);
     void Remove(string messageId);
+    bool TryRemoveMessage(string messsageId);
 }
