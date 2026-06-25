@@ -184,7 +184,29 @@ public class MessagesApiTests : IClassFixture<WebApplicationFactory<Program>>
             TestContext.Current.CancellationToken
         );
 
-        // Assert: Verify your controller correctly evaluates the 'false' state and returns 404
+        // Asser
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ReplayMessage_ShouldReturn400BadRequest_WhenPayloadHasSyntaxErrors()
+    {
+        // Arrange
+        var malformedPayload = "\"orderId\": 1050 }";
+
+        // Act
+        var response = await _client.PostAsJsonAsync(
+            "/api/messages/replay",
+            new
+            {
+                MessageId = "msg-123",
+                TargetQueue = "orders",
+                ModifiedPayload = malformedPayload,
+            },
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }
