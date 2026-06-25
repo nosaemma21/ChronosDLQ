@@ -23,7 +23,19 @@ class RabbitMqConsumer : IMessageBrokerConsumer
     public async Task StartConsumingAsync(string queueName, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Connecting to RabbitMQ broker...");
-        var factory = new ConnectionFactory { HostName = "localhost" };
+        var factory = new ConnectionFactory
+        {
+            HostName = "localhost",
+
+            // checking for connection drops and auto-reconnect
+            AutomaticRecoveryEnabled = true,
+
+            //creating queues when reconnecting
+            TopologyRecoveryEnabled = true,
+
+            //Retry every 10 seconds
+            NetworkRecoveryInterval = TimeSpan.FromSeconds(10),
+        };
 
         // Opening the persistent TCP socket
         _connection = await factory.CreateConnectionAsync(cancellationToken);
