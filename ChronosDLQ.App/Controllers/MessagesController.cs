@@ -1,5 +1,6 @@
 using ChronosDLQ.App.Models;
 using ChronosDLQ.App.Services;
+using ChronosDLQ.App.Utilities;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -79,6 +80,16 @@ public class MessagesController : ControllerBase
     [HttpPost("replay")]
     public async Task<IActionResult> ReplayMessage([FromBody] ReplayRequest request)
     {
+        if (!JsonValidator.IsValidJson(request.ModifiedPayload))
+        {
+            return BadRequest(new { message = "Invalid JSON syntax in modified payload" });
+        }
+
+        if (string.IsNullOrWhiteSpace(request.TargetQueue))
+        {
+            return BadRequest(new { message = "Target queue must be specified" });
+        }
+
         var replayed = await _replayService.ReplayMessageAsync(
             request.MessageId,
             request.TargetQueue,
