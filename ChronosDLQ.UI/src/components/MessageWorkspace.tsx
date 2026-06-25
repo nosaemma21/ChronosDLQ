@@ -34,12 +34,8 @@ export function MessageWorkspace({
 
     setIsDiscarding(true);
     try {
-      // Execute direct backend service eviction call using the ID prop we have
       await api.discardMessage(selectedMessage.messageId);
       alert("Message trace successfully purged from control plane.");
-
-      // No state setters needed here!
-      // Your App.tsx 3-second polling loop will instantly clear this card on its next tick.
     } catch (err: unknown) {
       alert(
         err instanceof Error ? err.message : "Purge routine execution failure.",
@@ -49,7 +45,6 @@ export function MessageWorkspace({
     }
   };
 
-  // Combine both submission states to keep buttons disabled during any active network traffic
   const anyActiveNetworkAction = isSubmitting || isDiscarding;
 
   return (
@@ -92,7 +87,7 @@ export function MessageWorkspace({
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col space-y-2 min-h-[300px]">
+          <div className="flex-1 flex flex-col space-y-2 min-h-75">
             <label className="text-xs font-mono text-slate-500 uppercase tracking-wider block">
               Modify Execution Payload
             </label>
