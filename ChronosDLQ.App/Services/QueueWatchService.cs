@@ -34,7 +34,10 @@ public class QueueWatchService : IQueueWatchService
         try
         {
             await _brokerConsumer.StartConsumingAsync(normalizedQueueName, cancellationToken);
-            _logger.LogInformation("Chronos is now watching queue {QueueName}", normalizedQueueName);
+            _logger.LogInformation(
+                "Chronos is now watching queue {QueueName}",
+                normalizedQueueName
+            );
         }
         catch
         {
