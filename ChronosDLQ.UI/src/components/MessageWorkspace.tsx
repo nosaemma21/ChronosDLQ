@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { type DeadLetterMessage } from "../types";
 import { EmptyInspectionState } from "./EmptyInspectionState";
-import { api } from "../services/api"; // Pulling in your api client service directly
+import { api } from "../services/api";
 
 interface MessageWorkspaceProps {
   selectedMessage: DeadLetterMessage | null;

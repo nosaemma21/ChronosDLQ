@@ -38,6 +38,10 @@ export function useDeadLetterMessages() {
           ? err.message
           : "An unexpected network failure occurred.",
       );
+
+      // clearing ui ghost shell (fix)
+      setSelectedMessage(null);
+      setEditedPayload("");
     } finally {
       setIsLoading(false);
     }
