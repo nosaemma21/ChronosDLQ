@@ -13,6 +13,7 @@ export function useDeadLetterMessages() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchMessages = useCallback(async () => {
+    setIsLoading(true);
     try {
       const data = await api.getMessages();
       setMessages(data);

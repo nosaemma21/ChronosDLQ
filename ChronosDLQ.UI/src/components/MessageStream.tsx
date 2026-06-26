@@ -1,4 +1,4 @@
-import { type DeadLetterMessage } from "../types";
+import { type DeadLetterMessage, type RabbitMqQueueInfo } from "../types";
 import { MessageCard } from "./MessageCard";
 
 interface MessageStreamProps {
@@ -6,6 +6,13 @@ interface MessageStreamProps {
   selectedMessageId?: string;
   isLoading: boolean;
   error: string | null;
+  availableQueues: RabbitMqQueueInfo[];
+  watchedQueues: string[];
+  queueDraft: string;
+  isQueueActionPending: boolean;
+  onQueueDraftChange: (queueName: string) => void;
+  onWatchQueue: () => void;
+  onUnwatchQueue: (queueName: string) => void;
   onSelectMessage: (message: DeadLetterMessage) => void;
 }
 
@@ -14,25 +21,100 @@ export function MessageStream({
   selectedMessageId,
   isLoading,
   error,
+  availableQueues,
+  watchedQueues,
+  queueDraft,
+  isQueueActionPending,
+  onQueueDraftChange,
+  onWatchQueue,
+  onUnwatchQueue,
   onSelectMessage,
 }: MessageStreamProps) {
+  const dlqQueues = availableQueues.filter((queue) => queue.name.endsWith(".dlq"));
+
   return (
-    <section className="col-span-4 border-r border-slate-900 bg-slate-950 p-4 overflow-y-auto space-y-3">
-      <div className="text-xs font-mono tracking-wider text-slate-500 uppercase px-1 mb-2">
+    <section className="col-span-4 space-y-4 overflow-y-auto border-r border-slate-900 bg-slate-950 p-4">
+      <div className="space-y-3 rounded-lg border border-slate-900 bg-slate-900/30 p-3">
+        <div className="font-mono text-xs tracking-wider text-slate-500 uppercase">
+          Queue Watchlist
+        </div>
+
+        <div className="flex gap-2">
+          <input
+            list="available-queues"
+            value={queueDraft}
+            onChange={(event) => onQueueDraftChange(event.target.value)}
+            placeholder="orders.dlq"
+            className="min-w-0 flex-1 rounded-md border border-slate-800 bg-slate-950 px-3 py-2 font-mono text-xs text-slate-200 outline-none focus:border-emerald-500/50"
+          />
+          <datalist id="available-queues">
+            {availableQueues.map((queue) => (
+              <option key={queue.name} value={queue.name}>
+                {queue.name}
+              </option>
+            ))}
+          </datalist>
+          <button
+            type="button"
+            onClick={onWatchQueue}
+            disabled={isQueueActionPending || !queueDraft.trim()}
+            className="rounded-md bg-emerald-600 px-3 py-2 text-xs font-semibold text-emerald-950 transition hover:bg-emerald-400 disabled:bg-slate-800 disabled:text-slate-500"
+          >
+            Watch
+          </button>
+        </div>
+
+        {dlqQueues.length > 0 ? (
+          <div className="flex flex-wrap gap-2">
+            {dlqQueues.map((queue) => (
+              <button
+                type="button"
+                key={queue.name}
+                onClick={() => onQueueDraftChange(queue.name)}
+                className="rounded border border-slate-800 bg-slate-950 px-2 py-1 font-mono text-[11px] text-slate-400 transition hover:border-slate-700 hover:text-slate-200"
+              >
+                {queue.name}
+              </button>
+            ))}
+          </div>
+        ) : null}
+
+        <div className="flex flex-wrap gap-2">
+          {watchedQueues.length === 0 ? (
+            <span className="font-mono text-xs text-slate-600">
+              No queues watched yet.
+            </span>
+          ) : (
+            watchedQueues.map((queueName) => (
+              <button
+                type="button"
+                key={queueName}
+                onClick={() => onUnwatchQueue(queueName)}
+                disabled={isQueueActionPending}
+                className="rounded border border-rose-500/20 bg-rose-500/10 px-2 py-1 font-mono text-[11px] text-rose-300 transition hover:border-rose-500/40 disabled:opacity-60"
+              >
+                {queueName} x
+              </button>
+            ))
+          )}
+        </div>
+      </div>
+
+      <div className="px-1 font-mono text-xs tracking-wider text-slate-500 uppercase">
         Active Poison Stream ({messages.length})
       </div>
 
       {isLoading && messages.length === 0 ? (
-        <div className="text-xs font-mono text-slate-600 p-4">
+        <div className="p-4 font-mono text-xs text-slate-600">
           Streaming index layers...
         </div>
       ) : error ? (
-        <div className="p-4 bg-amber-950/20 border border-amber-900/30 rounded-lg text-xs font-mono text-amber-400">
+        <div className="rounded-lg border border-amber-900/30 bg-amber-950/20 p-4 font-mono text-xs text-amber-400">
           {error}
         </div>
       ) : messages.length === 0 ? (
-        <div className="p-8 border border-dashed border-slate-900 rounded-xl text-center text-xs font-mono text-slate-600">
-          Queue clear. Zero dead letters detected.
+        <div className="rounded-xl border border-dashed border-slate-900 p-8 text-center font-mono text-xs text-slate-600">
+          Watched queues are clear.
         </div>
       ) : (
         messages.map((message) => (

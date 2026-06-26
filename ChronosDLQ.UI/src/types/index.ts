@@ -12,6 +12,14 @@ export interface ReplayRequest {
   modifiedPayload: string;
 }
 
+export interface RabbitMqQueueInfo {
+  name: string;
+  ready: number;
+  unacked: number;
+  total: number;
+  state: string;
+}
+
 export type JsonValue =
   | string
   | number

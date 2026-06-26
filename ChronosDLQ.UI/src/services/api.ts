@@ -1,20 +1,50 @@
 import {
   type DeadLetterMessage,
   type JsonPatchOperation,
+  type RabbitMqQueueInfo,
   type ReplayRequest,
 } from "../types";
 
 const BASE_URL = "http://localhost:5103/api";
 
 export const api = {
-  // Fetching all dead letter messages
   async getMessages(): Promise<DeadLetterMessage[]> {
     const response = await fetch(`${BASE_URL}/messages`);
-    if (!response.ok) throw new Error("Failed to stream dead letter logs ❌.");
+    if (!response.ok) throw new Error("Failed to stream dead letter logs.");
     return response.json();
   },
 
-  // applying jsonpatch modfication to active message payload
+  async getQueues(): Promise<RabbitMqQueueInfo[]> {
+    const response = await fetch(`${BASE_URL}/queues`);
+    if (!response.ok) throw new Error("Failed to discover RabbitMQ queues.");
+    return response.json();
+  },
+
+  async getWatchedQueues(): Promise<string[]> {
+    const response = await fetch(`${BASE_URL}/queues/watched`);
+    if (!response.ok) throw new Error("Failed to load watched queues.");
+    return response.json();
+  },
+
+  async watchQueue(queueName: string): Promise<{ message: string }> {
+    const response = await fetch(`${BASE_URL}/queues/watched`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ queueName }),
+    });
+    if (!response.ok) throw new Error("Failed to watch queue.");
+    return response.json();
+  },
+
+  async unwatchQueue(queueName: string): Promise<{ message: string }> {
+    const response = await fetch(
+      `${BASE_URL}/queues/watched/${encodeURIComponent(queueName)}`,
+      { method: "DELETE" },
+    );
+    if (!response.ok) throw new Error("Failed to stop watching queue.");
+    return response.json();
+  },
+
   async patchMessage(
     messageId: string,
     operations: JsonPatchOperation[],
@@ -24,7 +54,7 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(operations),
     });
-    if (!response.ok) throw new Error("Failed to modify payload");
+    if (!response.ok) throw new Error("Failed to modify payload.");
     return response.json();
   },
 
@@ -34,7 +64,7 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(request),
     });
-    if (!response.ok) throw new Error("Replay failed");
+    if (!response.ok) throw new Error("Replay failed.");
     return response.json();
   },
 
@@ -42,7 +72,7 @@ export const api = {
     const response = await fetch(`${BASE_URL}/messages/${messageId}`, {
       method: "DELETE",
     });
-    if (!response.ok) throw new Error("Failed to remove message");
+    if (!response.ok) throw new Error("Failed to remove message.");
     return response.json();
   },
 };
