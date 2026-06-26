@@ -83,19 +83,19 @@ export function MessageWorkspace({
   const anyActiveNetworkAction = isSubmitting || isDiscarding;
 
   return (
-    <section className="col-span-8 flex flex-col space-y-6 overflow-y-auto bg-slate-950/20 p-6">
+    <section className="col-span-8 flex min-h-0 min-w-0 flex-col space-y-6 overflow-hidden bg-slate-950/20 p-6">
       {selectedMessage ? (
         <>
-          <div className="flex items-start justify-between rounded-xl border border-slate-900 bg-slate-900/30 p-4">
-            <div>
+          <div className="flex shrink-0 items-start justify-between gap-4 rounded-xl border border-slate-900 bg-slate-900/30 p-4">
+            <div className="min-w-0">
               <h2 className="text-lg font-semibold text-slate-200">
                 Surgical Inspection Module
               </h2>
-              <p className="mt-1 font-mono text-xs text-slate-500">
+              <p className="mt-1 truncate font-mono text-xs text-slate-500">
                 Target Trace Boundary: {selectedMessage.messageId}
               </p>
             </div>
-            <div className="flex gap-2">
+            <div className="flex shrink-0 gap-2">
               <button
                 onClick={handleDiscardMessage}
                 disabled={anyActiveNetworkAction}
@@ -113,7 +113,7 @@ export function MessageWorkspace({
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="shrink-0 space-y-2">
             <label className="block font-mono text-xs tracking-wider text-slate-500 uppercase">
               Diagnostics / Exception Log
             </label>
@@ -122,14 +122,14 @@ export function MessageWorkspace({
             </div>
           </div>
 
-          <div className="flex min-h-75 flex-1 flex-col space-y-2">
+          <div className="flex min-h-0 flex-1 flex-col space-y-2">
             <label className="block font-mono text-xs tracking-wider text-slate-500 uppercase">
               Modify Execution Payload
             </label>
             <textarea
               value={editedPayload}
               onChange={(event) => onPayloadChange(event.target.value)}
-              className="flex-1 resize-none rounded-xl border border-slate-900 bg-slate-900/40 p-4 font-mono text-xs leading-relaxed text-emerald-400/90 selection:bg-slate-800 focus:border-emerald-500/40 focus:outline-hidden"
+              className="min-h-0 flex-1 resize-none overflow-auto rounded-xl border border-slate-900 bg-slate-900/40 p-4 font-mono text-xs leading-relaxed text-emerald-400/90 selection:bg-slate-800 focus:border-emerald-500/40 focus:outline-hidden"
               spellCheck="false"
             />
           </div>

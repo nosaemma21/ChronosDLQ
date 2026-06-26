@@ -11,10 +11,40 @@
 
 html,
 body {
+  height: 100%;
   background-color: #020617;
   color: #f8fafc;
   font-family: var(--font-display);
-  overflow-x: hidden;
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
+* {
+  scrollbar-color: #334155 #020617;
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #020617;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #334155;
+  border: 2px solid #020617;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #475569;
 }
 
 .active-glow {
