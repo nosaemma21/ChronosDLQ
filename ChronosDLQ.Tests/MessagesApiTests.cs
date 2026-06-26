@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using System.Net.Http.Json;
 using ChronosDLQ.App.Models;
 using ChronosDLQ.App.Services;
@@ -85,6 +86,43 @@ public class MessagesApiTests : IClassFixture<WebApplicationFactory<Program>>
 
         //Assert
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task PatchMessagePayload_ShouldApplyJsonPatchAndPersistPayload_WhenMessageExists()
+    {
+        // Arrange
+        var messageId = "patch-me-123";
+        _store.AddOrUpdate(
+            new DeadLetterMessage
+            {
+                MessageId = messageId,
+                RawPayload = "{\"status\":\"failed\",\"attempts\":1}",
+            }
+        );
+
+        using var content = new StringContent(
+            "[{\"op\":\"replace\",\"path\":\"/status\",\"value\":\"recovered\"}]",
+            Encoding.UTF8,
+            "application/json-patch+json"
+        );
+
+        // Act
+        var response = await _client.PatchAsync(
+            $"/api/messages/{messageId}",
+            content,
+            TestContext.Current.CancellationToken
+        );
+
+        // Assert
+        response.EnsureSuccessStatusCode();
+        var updatedMessage = await response.Content.ReadFromJsonAsync<DeadLetterMessage>(
+            TestContext.Current.CancellationToken
+        );
+
+        Assert.NotNull(updatedMessage);
+        Assert.Contains("\"status\":\"recovered\"", updatedMessage.RawPayload);
+        Assert.Contains("\"attempts\":1", updatedMessage.RawPayload);
     }
 
     [Fact]

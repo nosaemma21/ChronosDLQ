@@ -60,6 +60,8 @@ public class MessagesController : ControllerBase
                 existingMessage.RawPayload
             );
 
+            patchDoc.ApplyTo(deserializedObject);
+
             // Reserialize object back to clean string fmt
             string updatedPayload = JsonConvert.SerializeObject(deserializedObject);
             existingMessage.RawPayload = updatedPayload;
