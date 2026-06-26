@@ -14,26 +14,36 @@ export function MessageCard({
   return (
     <div
       onClick={() => onSelect(message)}
-      className={`group p-4 rounded-lg border transition-all duration-200 cursor-pointer ${
+      className={`group grid cursor-pointer grid-cols-[32px_1fr] gap-3 border-2 p-2 transition-all duration-200 ${
         isSelected
-          ? "bg-slate-900/80 border-rose-500/40 active-glow"
-          : "bg-slate-900/30 border-slate-900 hover:border-slate-800 hover:bg-slate-900/50"
+          ? "active-glow border-[#d13f4d] bg-[#14233a]"
+          : "border-[#263e56] bg-[#09121e] shadow-[3px_3px_0_#020617] hover:border-[#6d8fb0] hover:bg-[#102034]"
       }`}
     >
-      <div className="flex items-center justify-between gap-2 mb-2">
-        <span className="text-xs font-mono font-medium text-rose-400 px-2 py-0.5 rounded bg-rose-500/10 border border-rose-500/20">
-          {message.queueName}
-        </span>
-        <span className="text-[10px] font-mono text-slate-500">
-          {new Date(message.timestamp).toLocaleTimeString()}
-        </span>
+      <div className="flex h-16 w-8 flex-col items-center justify-between border-2 border-[#52718e] bg-[#122033] p-1 shadow-[2px_2px_0_#020617]">
+        <div className="h-8 w-4 border border-[#7c1f2a] bg-[#a51f31]" />
+        <div className="flex gap-0.5">
+          <span className="h-1 w-1 bg-[#ffcf5c]" />
+          <span className="h-1 w-1 bg-[#ffcf5c]" />
+          <span className="h-1 w-1 bg-[#ffcf5c]" />
+        </div>
       </div>
-      <div className="text-sm font-mono text-slate-300 truncate mb-1">
-        ID: {message.messageId}
+      <div className="min-w-0">
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <span className="border-2 border-[#7c1f2a] bg-[#3b1018] px-2 py-0.5 font-mono text-xs font-bold text-[#ff7b86]">
+            {message.queueName}
+          </span>
+          <span className="font-mono text-[10px] text-[#8aa9c5]">
+            {new Date(message.timestamp).toLocaleTimeString()}
+          </span>
+        </div>
+        <div className="mb-1 truncate font-mono text-xs text-[#f6f1dc]">
+          {message.messageId}
+        </div>
+        <p className="truncate font-mono text-xs text-[#9fb7cc]">
+          {message.exceptionMessage}
+        </p>
       </div>
-      <p className="text-xs text-slate-400 line-clamp-2 font-mono bg-slate-950/40 p-2 rounded border border-slate-900/80 group-hover:border-slate-800/40">
-        {message.exceptionMessage}
-      </p>
     </div>
   );
 }

@@ -33,9 +33,9 @@ export function MessageStream({
   const dlqQueues = availableQueues.filter((queue) => queue.name.endsWith(".dlq"));
 
   return (
-    <section className="col-span-4 flex min-h-0 flex-col gap-4 overflow-hidden border-r border-slate-900 bg-slate-950 p-4">
-      <div className="shrink-0 space-y-3 rounded-lg border border-slate-900 bg-slate-900/30 p-3">
-        <div className="font-mono text-xs tracking-wider text-slate-500 uppercase">
+    <section className="col-span-4 flex min-h-0 flex-col gap-3 overflow-hidden">
+      <div className="pixel-panel shrink-0 space-y-3 p-3">
+        <div className="pixel-title text-xl font-bold uppercase text-[#f6f1dc]">
           Queue Watchlist
         </div>
 
@@ -45,7 +45,7 @@ export function MessageStream({
             value={queueDraft}
             onChange={(event) => onQueueDraftChange(event.target.value)}
             placeholder="orders.dlq"
-            className="min-w-0 flex-1 rounded-md border border-slate-800 bg-slate-950 px-3 py-2 font-mono text-xs text-slate-200 outline-none focus:border-emerald-500/50"
+            className="min-w-0 flex-1 border-2 border-[#52718e] bg-[#09121e] px-3 py-2 font-mono text-sm text-[#f6f1dc] outline-none shadow-[inset_0_0_0_2px_#020617] focus:border-[#6af052]"
           />
           <datalist id="available-queues">
             {availableQueues.map((queue) => (
@@ -58,7 +58,7 @@ export function MessageStream({
             type="button"
             onClick={onWatchQueue}
             disabled={isQueueActionPending || !queueDraft.trim()}
-            className="flex min-w-20 items-center justify-center gap-2 rounded-md bg-emerald-600 px-3 py-2 text-xs font-semibold text-emerald-950 transition hover:bg-emerald-400 disabled:bg-slate-800 disabled:text-slate-500"
+            className="pixel-button pixel-title flex min-w-24 items-center justify-center gap-2 bg-[#79d957] px-3 py-2 text-lg font-bold text-[#10210d] transition hover:bg-[#9cff78] disabled:bg-[#263849] disabled:text-[#6d8fb0]"
           >
             {isQueueActionPending ? (
               <>
@@ -78,7 +78,7 @@ export function MessageStream({
                 type="button"
                 key={queue.name}
                 onClick={() => onQueueDraftChange(queue.name)}
-                className="rounded border border-slate-800 bg-slate-950 px-2 py-1 font-mono text-[11px] text-slate-400 transition hover:border-slate-700 hover:text-slate-200"
+                className="border-2 border-[#1f2d3e] bg-[#102034] px-2 py-1 font-mono text-xs font-bold text-[#cfe3f5] shadow-[2px_2px_0_#020617] transition hover:border-[#6d8fb0] hover:text-[#f6f1dc]"
               >
                 {queue.name}
               </button>
@@ -98,7 +98,7 @@ export function MessageStream({
                 key={queueName}
                 onClick={() => onUnwatchQueue(queueName)}
                 disabled={isQueueActionPending}
-                className="rounded border border-rose-500/20 bg-rose-500/10 px-2 py-1 font-mono text-[11px] text-rose-300 transition hover:border-rose-500/40 disabled:opacity-60"
+                className="border-2 border-[#7c1f2a] bg-[#3b1018] px-2 py-1 font-mono text-xs font-bold text-[#ff7b86] shadow-[2px_2px_0_#020617] transition hover:border-[#d13f4d] disabled:opacity-60"
               >
                 {queueName} x
               </button>
@@ -107,21 +107,21 @@ export function MessageStream({
         </div>
       </div>
 
-      <div className="shrink-0 px-1 font-mono text-xs tracking-wider text-slate-500 uppercase">
+      <div className="pixel-panel pixel-title shrink-0 px-3 py-2 text-xl font-bold uppercase text-[#f6f1dc]">
         Active Poison Stream ({messages.length})
       </div>
 
-      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
+      <div className="pixel-panel min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         {isLoading && messages.length === 0 ? (
-          <div className="p-4 font-mono text-xs text-slate-600">
+          <div className="p-4 font-mono text-sm text-[#6d8fb0]">
             Streaming index layers...
           </div>
         ) : error ? (
-          <div className="rounded-lg border border-amber-900/30 bg-amber-950/20 p-4 font-mono text-xs text-amber-400">
+          <div className="border-2 border-[#704f1d] bg-[#2b1f12] p-4 font-mono text-xs text-[#ffcf5c]">
             {error}
           </div>
         ) : messages.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-900 p-8 text-center font-mono text-xs text-slate-600">
+          <div className="border-2 border-dashed border-[#263e56] p-8 text-center font-mono text-xs text-[#6d8fb0]">
             Watched queues are clear.
           </div>
         ) : (
