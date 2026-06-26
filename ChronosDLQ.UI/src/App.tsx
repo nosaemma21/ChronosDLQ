@@ -129,10 +129,10 @@ export default function App() {
   };
 
   return (
-    <div className="font-display flex h-screen min-h-0 flex-col overflow-hidden bg-slate-950 text-slate-100">
+    <div className="font-display flex h-screen min-h-0 flex-col overflow-hidden p-3 text-[#f6f1dc]">
       <AppHeader hasError={Boolean(error ?? queueError)} />
 
-      <main className="grid min-h-0 flex-1 grid-cols-12 overflow-hidden">
+      <main className="mt-3 grid min-h-0 flex-1 grid-cols-12 gap-3 overflow-hidden">
         <MessageStream
           messages={visibleMessages}
           selectedMessageId={selectedMessage?.messageId}

@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Pixelify+Sans:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -7,13 +7,21 @@
 
   --font-display: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
+  --font-pixel: "Pixelify Sans", "JetBrains Mono", monospace;
 }
 
 html,
 body {
   height: 100%;
-  background-color: #020617;
-  color: #f8fafc;
+  background:
+    linear-gradient(rgba(148, 163, 184, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.025) 1px, transparent 1px),
+    #07111d;
+  background-size:
+    6px 6px,
+    6px 6px,
+    auto;
+  color: #f6f1dc;
   font-family: var(--font-display);
   overflow: hidden;
 }
@@ -24,7 +32,7 @@ body {
 }
 
 * {
-  scrollbar-color: #334155 #020617;
+  scrollbar-color: #6d8fb0 #09121e;
   scrollbar-width: thin;
 }
 
@@ -34,19 +42,61 @@ body {
 }
 
 *::-webkit-scrollbar-track {
-  background: #020617;
+  background: #09121e;
 }
 
 *::-webkit-scrollbar-thumb {
-  background: #334155;
-  border: 2px solid #020617;
-  border-radius: 999px;
+  background: #6d8fb0;
+  border: 2px solid #09121e;
+  border-radius: 0;
 }
 
 *::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #93b7d6;
 }
 
 .active-glow {
-  box-shadow: 0 0 15px -3px rgba(244, 63, 94, 0.2);
+  box-shadow:
+    0 0 0 2px #122033,
+    0 0 16px rgba(106, 240, 82, 0.55);
+}
+
+.pixel-frame {
+  border: 2px solid #6d8fb0;
+  box-shadow:
+    inset 0 0 0 2px #07111d,
+    0 0 0 2px #020617,
+    0 12px 0 rgba(0, 0, 0, 0.24);
+}
+
+.pixel-panel {
+  border: 2px solid #52718e;
+  background:
+    linear-gradient(180deg, rgba(37, 59, 79, 0.92), rgba(9, 18, 30, 0.96)),
+    #0b1523;
+  box-shadow:
+    inset 0 0 0 2px rgba(2, 6, 23, 0.8),
+    3px 3px 0 #020617;
+}
+
+.pixel-title {
+  font-family: var(--font-pixel);
+  text-shadow:
+    2px 2px 0 #020617,
+    -1px 0 0 #020617,
+    0 1px 0 #020617;
+}
+
+.pixel-button {
+  border: 2px solid #1f2d3e;
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.12),
+    3px 3px 0 #020617;
+}
+
+.pixel-button:active {
+  transform: translate(2px, 2px);
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.08),
+    1px 1px 0 #020617;
 }
