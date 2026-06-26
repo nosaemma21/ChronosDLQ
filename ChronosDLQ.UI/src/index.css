@@ -100,3 +100,67 @@ body {
     inset 0 0 0 1px rgba(255, 255, 255, 0.08),
     1px 1px 0 #020617;
 }
+
+.chronos-alert {
+  border: 2px solid #52718e;
+  border-radius: 0;
+  background:
+    linear-gradient(180deg, rgba(37, 59, 79, 0.96), rgba(9, 18, 30, 0.98)),
+    #0b1523;
+  box-shadow:
+    inset 0 0 0 2px #020617,
+    4px 4px 0 #020617;
+}
+
+.chronos-alert-title {
+  color: #f6f1dc;
+  font-family: var(--font-pixel);
+  font-size: 1.6rem;
+  line-height: 1;
+  text-shadow: 2px 2px 0 #020617;
+}
+
+.chronos-alert-body {
+  color: #d8e6f2;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+.chronos-alert-icon {
+  border-radius: 0;
+}
+
+.chronos-alert-button {
+  border: 1px solid #1f2d3e;
+  padding: 0.45rem 0.8rem;
+  color: #10210d;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    2px 2px 0 #020617;
+}
+
+.chronos-alert-confirm {
+  background: #79d957;
+}
+
+.chronos-alert-confirm:hover {
+  background: #9cff78;
+}
+
+.chronos-alert-cancel {
+  margin-left: 0.5rem;
+  background: #8f4f52;
+  color: #1f0b0d;
+}
+
+.chronos-alert-cancel:hover {
+  background: #b86c6f;
+}
+
+.chronos-alert-progress {
+  background: #6af052;
+}

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { type DeadLetterMessage } from "../types";
 import { EmptyInspectionState } from "./EmptyInspectionState";
 import { api } from "../services/api";
-import Swal from "sweetalert2";
+import { showPixelAlert, showPixelConfirm } from "../utils/alerts";
 
 interface MessageWorkspaceProps {
   selectedMessage: DeadLetterMessage | null;
@@ -25,25 +25,10 @@ export function MessageWorkspace({
   const handleDiscardMessage = async () => {
     if (!selectedMessage) return;
 
-    // if (
-    //   !window.confirm(
-    //     "Are you sure you want to permanently discard this trace?",
-    //   )
-    // ) {
-    //   return;
-    // }
-
-    // alerting with sweetalert
-    const result = await Swal.fire({
+    const result = await showPixelConfirm({
       title: "Confirm Decapitation",
       text: "Are you sure you want to permanently discard this trace?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#dc2626",
-      cancelButtonColor: "#374151",
       confirmButtonText: "Yes, purge trace",
-      background: "#0f172a",
-      color: "#f8fafc",
     });
 
     if (!result.isConfirmed) return;
@@ -51,29 +36,20 @@ export function MessageWorkspace({
     setIsDiscarding(true);
     try {
       await api.discardMessage(selectedMessage.messageId);
-      // alert("Message trace successfully purged from control plane.");
-      await Swal.fire({
+      await showPixelAlert({
+        icon: "success",
         title: "Purged!",
         text: "Message trace successfully purged from control plane.",
-        icon: "success",
         timer: 2000,
-        showConfirmButton: false,
-        background: "#0f172a",
-        color: "#f8fafc",
       });
     } catch (err: unknown) {
-      // alert(
-      //   err instanceof Error ? err.message : "Purge routine execution failure.",
-      // );
-      await Swal.fire({
+      await showPixelAlert({
+        icon: "error",
         title: "Execution Failure",
         text:
           err instanceof Error
             ? err.message
             : "Purge routine execution failure.",
-        icon: "error",
-        background: "#0f172a",
-        color: "#f8fafc",
       });
     } finally {
       setIsDiscarding(false);

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Swal from "sweetalert2";
 import { AppHeader } from "./components/AppHeader";
 import { MessageStream } from "./components/MessageStream";
 import { MessageWorkspace } from "./components/MessageWorkspace";
 import { useDeadLetterMessages } from "./hooks/useDeadLetterMessages";
 import { api } from "./services/api";
 import { type RabbitMqQueueInfo } from "./types";
+import { showPixelToast } from "./utils/alerts";
 
 export default function App() {
   const [availableQueues, setAvailableQueues] = useState<RabbitMqQueueInfo[]>(
@@ -93,37 +93,17 @@ export default function App() {
   const handleExecuteReplay = () => {
     void replaySelectedMessage()
       .then(() => {
-        void Swal.fire({
-          toast: true,
-          position: "bottom-end",
+        void showPixelToast({
           icon: "success",
           title: "Telemetry Re-queued",
           text: "Payload successfully processed and re-queued!",
-          showConfirmButton: false,
-          timer: 3000,
-          timerProgressBar: true,
-          background: "#0f172a",
-          color: "#f8fafc",
-          customClass: {
-            popup: "border border-emerald-500/20 max-w-sm rounded-xl",
-          },
         });
       })
       .catch((err: unknown) => {
-        void Swal.fire({
-          toast: true,
-          position: "bottom-end",
+        void showPixelToast({
           icon: "error",
           title: "Engine Failure",
           text: err instanceof Error ? err.message : "Replay failed",
-          showConfirmButton: false,
-          timer: 3000,
-          timerProgressBar: true,
-          background: "#0f172a",
-          color: "#f8fafc",
-          customClass: {
-            popup: "border border-rose-500/20 max-w-sm rounded-xl",
-          },
         });
       });
   };
