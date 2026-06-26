@@ -42,6 +42,7 @@ export function useDeadLetterMessages() {
       // clearing ui ghost shell (fix)
       setSelectedMessage(null);
       setEditedPayload("");
+      setMessages([]);
     } finally {
       setIsLoading(false);
     }
