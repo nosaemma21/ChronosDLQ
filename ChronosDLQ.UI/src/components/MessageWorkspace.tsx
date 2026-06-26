@@ -95,18 +95,18 @@ export function MessageWorkspace({
                 Target Trace Boundary: {selectedMessage.messageId}
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <button
                 onClick={handleDiscardMessage}
                 disabled={anyActiveNetworkAction}
-                className="cursor-pointer rounded-lg border border-rose-950 bg-slate-900 px-4 py-2 text-sm font-medium text-rose-400 transition-all hover:border-rose-900 hover:bg-slate-800 disabled:opacity-50"
+                className="cursor-pointer rounded-md border border-rose-950 bg-slate-900 px-3 py-1.5 text-xs font-medium text-rose-400 transition-all hover:border-rose-900 hover:bg-slate-800 disabled:opacity-50"
               >
                 {isDiscarding ? "Purging..." : "Discard Trace"}
               </button>
               <button
                 onClick={onReplay}
                 disabled={anyActiveNetworkAction}
-                className="cursor-pointer rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-emerald-950 shadow-lg transition-all hover:bg-emerald-50 disabled:bg-slate-800 disabled:text-slate-500"
+                className="cursor-pointer rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-emerald-950 shadow transition-all hover:bg-emerald-50 disabled:bg-slate-800 disabled:text-slate-500"
               >
                 {isSubmitting ? "Replaying..." : "Execute Replay Wizard"}
               </button>
