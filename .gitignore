@@ -20,3 +20,6 @@ bld/
 *.user
 *.useroscache
 *.sln.docstates
+
+## Local planning notes
+todo.md
