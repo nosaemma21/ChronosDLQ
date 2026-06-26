@@ -12,8 +12,9 @@ export function useDeadLetterMessages() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchMessages = useCallback(async () => {
-    setIsLoading(true);
+  const fetchMessages = useCallback(async (showLoading = false) => {
+    if (showLoading) setIsLoading(true);
+
     try {
       const data = await api.getMessages();
       setMessages(data);
@@ -45,13 +46,13 @@ export function useDeadLetterMessages() {
       setEditedPayload("");
       setMessages([]);
     } finally {
-      setIsLoading(false);
+      if (showLoading) setIsLoading(false);
     }
   }, [selectedMessage]);
 
   useEffect(() => {
-    const initialTimer = setTimeout(() => void fetchMessages(), 0);
-    const interval = setInterval(fetchMessages, 3000);
+    const initialTimer = setTimeout(() => void fetchMessages(true), 0);
+    const interval = setInterval(() => void fetchMessages(), 3000);
 
     return () => {
       clearTimeout(initialTimer);
