@@ -58,9 +58,16 @@ export function MessageStream({
             type="button"
             onClick={onWatchQueue}
             disabled={isQueueActionPending || !queueDraft.trim()}
-            className="rounded-md bg-emerald-600 px-3 py-2 text-xs font-semibold text-emerald-950 transition hover:bg-emerald-400 disabled:bg-slate-800 disabled:text-slate-500"
+            className="flex min-w-20 items-center justify-center gap-2 rounded-md bg-emerald-600 px-3 py-2 text-xs font-semibold text-emerald-950 transition hover:bg-emerald-400 disabled:bg-slate-800 disabled:text-slate-500"
           >
-            Watch
+            {isQueueActionPending ? (
+              <>
+                <span className="h-3 w-3 animate-spin rounded-full border-2 border-slate-500 border-t-transparent" />
+                Watching...
+              </>
+            ) : (
+              "Watch"
+            )}
           </button>
         </div>
 
