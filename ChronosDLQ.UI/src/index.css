@@ -88,15 +88,15 @@ body {
 }
 
 .pixel-button {
-  border: 2px solid #1f2d3e;
+  border: 1px solid #1f2d3e;
   box-shadow:
-    inset 0 0 0 2px rgba(255, 255, 255, 0.12),
-    3px 3px 0 #020617;
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    2px 2px 0 #020617;
 }
 
 .pixel-button:active {
-  transform: translate(2px, 2px);
+  transform: translate(1px, 1px);
   box-shadow:
-    inset 0 0 0 2px rgba(255, 255, 255, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
     1px 1px 0 #020617;
 }

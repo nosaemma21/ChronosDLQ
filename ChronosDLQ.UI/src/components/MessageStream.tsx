@@ -58,7 +58,7 @@ export function MessageStream({
             type="button"
             onClick={onWatchQueue}
             disabled={isQueueActionPending || !queueDraft.trim()}
-            className="pixel-button pixel-title flex min-w-24 items-center justify-center gap-2 bg-[#79d957] px-3 py-2 text-lg font-bold text-[#10210d] transition hover:bg-[#9cff78] disabled:bg-[#263849] disabled:text-[#6d8fb0]"
+            className="pixel-button pixel-title flex min-w-20 items-center justify-center gap-2 bg-[#79d957] px-2.5 py-1.5 text-base font-bold text-[#10210d] transition hover:bg-[#9cff78] disabled:bg-[#263849] disabled:text-[#6d8fb0]"
           >
             {isQueueActionPending ? (
               <>
