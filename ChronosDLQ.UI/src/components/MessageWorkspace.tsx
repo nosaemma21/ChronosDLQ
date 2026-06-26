@@ -2,6 +2,7 @@ import { useState } from "react";
 import { type DeadLetterMessage } from "../types";
 import { EmptyInspectionState } from "./EmptyInspectionState";
 import { api } from "../services/api";
+import Swal from "sweetalert2";
 
 interface MessageWorkspaceProps {
   selectedMessage: DeadLetterMessage | null;
@@ -24,22 +25,56 @@ export function MessageWorkspace({
   const handleDiscardMessage = async () => {
     if (!selectedMessage) return;
 
-    if (
-      !window.confirm(
-        "Are you sure you want to permanently discard this trace?",
-      )
-    ) {
-      return;
-    }
+    // if (
+    //   !window.confirm(
+    //     "Are you sure you want to permanently discard this trace?",
+    //   )
+    // ) {
+    //   return;
+    // }
+
+    // alerting with sweetalert
+    const result = await Swal.fire({
+      title: "Confirm Decapitation",
+      text: "Are you sure you want to permanently discard this trace?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc2626",
+      cancelButtonColor: "#374151",
+      confirmButtonText: "Yes, purge trace",
+      background: "#0f172a",
+      color: "#f8fafc",
+    });
+
+    if (!result.isConfirmed) return;
 
     setIsDiscarding(true);
     try {
       await api.discardMessage(selectedMessage.messageId);
-      alert("Message trace successfully purged from control plane.");
+      // alert("Message trace successfully purged from control plane.");
+      await Swal.fire({
+        title: "Purged!",
+        text: "Message trace successfully purged from control plane.",
+        icon: "success",
+        timer: 2000,
+        showConfirmButton: false,
+        background: "#0f172a",
+        color: "#f8fafc",
+      });
     } catch (err: unknown) {
-      alert(
-        err instanceof Error ? err.message : "Purge routine execution failure.",
-      );
+      // alert(
+      //   err instanceof Error ? err.message : "Purge routine execution failure.",
+      // );
+      await Swal.fire({
+        title: "Execution Failure",
+        text:
+          err instanceof Error
+            ? err.message
+            : "Purge routine execution failure.",
+        icon: "error",
+        background: "#0f172a",
+        color: "#f8fafc",
+      });
     } finally {
       setIsDiscarding(false);
     }
@@ -48,15 +83,15 @@ export function MessageWorkspace({
   const anyActiveNetworkAction = isSubmitting || isDiscarding;
 
   return (
-    <section className="col-span-8 bg-slate-950/20 p-6 overflow-y-auto flex flex-col space-y-6">
+    <section className="col-span-8 flex flex-col space-y-6 overflow-y-auto bg-slate-950/20 p-6">
       {selectedMessage ? (
         <>
-          <div className="bg-slate-900/30 border border-slate-900 p-4 rounded-xl flex justify-between items-start">
+          <div className="flex items-start justify-between rounded-xl border border-slate-900 bg-slate-900/30 p-4">
             <div>
               <h2 className="text-lg font-semibold text-slate-200">
                 Surgical Inspection Module
               </h2>
-              <p className="text-xs font-mono text-slate-500 mt-1">
+              <p className="mt-1 font-mono text-xs text-slate-500">
                 Target Trace Boundary: {selectedMessage.messageId}
               </p>
             </div>
@@ -64,14 +99,14 @@ export function MessageWorkspace({
               <button
                 onClick={handleDiscardMessage}
                 disabled={anyActiveNetworkAction}
-                className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-rose-400 border border-rose-950 hover:border-rose-900 disabled:opacity-50 font-medium text-sm rounded-lg transition-all cursor-pointer"
+                className="cursor-pointer rounded-lg border border-rose-950 bg-slate-900 px-4 py-2 text-sm font-medium text-rose-400 transition-all hover:border-rose-900 hover:bg-slate-800 disabled:opacity-50"
               >
                 {isDiscarding ? "Purging..." : "Discard Trace"}
               </button>
               <button
                 onClick={onReplay}
                 disabled={anyActiveNetworkAction}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-50 text-emerald-950 disabled:bg-slate-800 disabled:text-slate-500 font-semibold text-sm rounded-lg transition-all shadow-lg cursor-pointer"
+                className="cursor-pointer rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-emerald-950 shadow-lg transition-all hover:bg-emerald-50 disabled:bg-slate-800 disabled:text-slate-500"
               >
                 {isSubmitting ? "Replaying..." : "Execute Replay Wizard"}
               </button>
@@ -79,22 +114,22 @@ export function MessageWorkspace({
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-mono text-slate-500 uppercase tracking-wider block">
+            <label className="block font-mono text-xs tracking-wider text-slate-500 uppercase">
               Diagnostics / Exception Log
             </label>
-            <div className="p-4 bg-rose-950/10 border border-rose-900/20 rounded-xl font-mono text-xs text-rose-300/90 leading-relaxed overflow-x-auto whitespace-pre-wrap">
+            <div className="overflow-x-auto rounded-xl border border-rose-900/20 bg-rose-950/10 p-4 font-mono text-xs leading-relaxed whitespace-pre-wrap text-rose-300/90">
               {selectedMessage.exceptionMessage}
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col space-y-2 min-h-75">
-            <label className="text-xs font-mono text-slate-500 uppercase tracking-wider block">
+          <div className="flex min-h-75 flex-1 flex-col space-y-2">
+            <label className="block font-mono text-xs tracking-wider text-slate-500 uppercase">
               Modify Execution Payload
             </label>
             <textarea
               value={editedPayload}
               onChange={(event) => onPayloadChange(event.target.value)}
-              className="flex-1 p-4 bg-slate-900/40 border border-slate-900 focus:border-emerald-500/40 focus:outline-hidden rounded-xl font-mono text-xs text-emerald-400/90 leading-relaxed resize-none selection:bg-slate-800"
+              className="flex-1 resize-none rounded-xl border border-slate-900 bg-slate-900/40 p-4 font-mono text-xs leading-relaxed text-emerald-400/90 selection:bg-slate-800 focus:border-emerald-500/40 focus:outline-hidden"
               spellCheck="false"
             />
           </div>

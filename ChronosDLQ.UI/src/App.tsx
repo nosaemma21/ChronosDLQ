@@ -1,3 +1,4 @@
+import Swal from "sweetalert2";
 import { AppHeader } from "./components/AppHeader";
 import { MessageStream } from "./components/MessageStream";
 import { MessageWorkspace } from "./components/MessageWorkspace";
@@ -18,19 +19,47 @@ export default function App() {
 
   const handleExecuteReplay = () => {
     void replaySelectedMessage()
-      .then(() => alert("Payload successfully processed and re-queued!"))
+      .then(() => {
+        void Swal.fire({
+          toast: true,
+          position: "bottom-end",
+          icon: "success",
+          title: "Telemetry Re-queued",
+          text: "Payload successfully processed and re-queued!",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          background: "#0f172a",
+          color: "#f8fafc",
+          customClass: {
+            popup: "border border-emerald-500/20 max-w-sm rounded-xl",
+          },
+        });
+      })
       .catch((err: unknown) => {
-        alert(
-          err instanceof Error ? err.message : "Replay engine execution failure.",
-        );
+        void Swal.fire({
+          toast: true,
+          position: "bottom-end",
+          icon: "error",
+          title: "Engine Failure",
+          text: err instanceof Error ? err.message : "Replay failed",
+          showConfirmButton: false,
+          timer: 3000,
+          timerProgressBar: true,
+          background: "#0f172a",
+          color: "#f8fafc",
+          customClass: {
+            popup: "border border-rose-500/20 max-w-sm rounded-xl",
+          },
+        });
       });
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 font-display text-slate-100">
+    <div className="font-display flex min-h-screen flex-col bg-slate-950 text-slate-100">
       <AppHeader hasError={Boolean(error)} />
 
-      <main className="flex-1 grid grid-cols-12 overflow-hidden h-[calc(100vh-69px)]">
+      <main className="grid h-[calc(100vh-69px)] flex-1 grid-cols-12 overflow-hidden">
         <MessageStream
           messages={messages}
           selectedMessageId={selectedMessage?.messageId}

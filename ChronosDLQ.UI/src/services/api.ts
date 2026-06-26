@@ -24,7 +24,7 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(operations),
     });
-    if (!response.ok) throw new Error("Failed to modify payload ❌");
+    if (!response.ok) throw new Error("Failed to modify payload");
     return response.json();
   },
 
@@ -34,7 +34,7 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(request),
     });
-    if (!response.ok) throw new Error("Replay failed ❌");
+    if (!response.ok) throw new Error("Replay failed");
     return response.json();
   },
 
@@ -42,7 +42,7 @@ export const api = {
     const response = await fetch(`${BASE_URL}/messages/${messageId}`, {
       method: "DELETE",
     });
-    if (!response.ok) throw new Error("Failed to remove message ❌");
+    if (!response.ok) throw new Error("Failed to remove message");
     return response.json();
   },
 };
