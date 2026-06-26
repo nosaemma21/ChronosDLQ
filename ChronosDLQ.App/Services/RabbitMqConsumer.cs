@@ -1,31 +1,45 @@
-using System.Net.Sockets;
+using System.Collections.Concurrent;
 using System.Text;
-using System.Threading.Channels;
 using ChronosDLQ.App.Models;
-using ChronosDLQ.App.Services;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using Serilog;
+
+namespace ChronosDLQ.App.Services;
 
 class RabbitMqConsumer : IMessageBrokerConsumer
 {
     private readonly IMessageIndexStore _indexStore;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<RabbitMqConsumer> _logger;
-    private IConnection? _connection;
-    private IChannel? _channel;
+    private readonly ConcurrentDictionary<string, QueueConsumerHandle> _activeConsumers = new();
+    private readonly SemaphoreSlim _consumerLock = new(1, 1);
 
-    public RabbitMqConsumer(IMessageIndexStore indexStore, ILogger<RabbitMqConsumer> logger)
+    public RabbitMqConsumer(
+        IMessageIndexStore indexStore,
+        IConfiguration configuration,
+        ILogger<RabbitMqConsumer> logger
+    )
     {
         _indexStore = indexStore;
+        _configuration = configuration;
         _logger = logger;
     }
 
     public async Task StartConsumingAsync(string queueName, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Connecting to RabbitMQ broker...");
+        if (_activeConsumers.ContainsKey(queueName))
+            return;
+
+        await _consumerLock.WaitAsync(cancellationToken);
+        try
+        {
+            if (_activeConsumers.ContainsKey(queueName))
+                return;
+
+            _logger.LogInformation("Connecting to RabbitMQ broker for queue {QueueName}...", queueName);
         var factory = new ConnectionFactory
         {
-            HostName = "localhost",
+            HostName = _configuration["RabbitMq:HostName"] ?? "localhost",
 
             // checking for connection drops and auto-reconnect
             AutomaticRecoveryEnabled = true,
@@ -38,13 +52,13 @@ class RabbitMqConsumer : IMessageBrokerConsumer
         };
 
         // Opening the persistent TCP socket
-        _connection = await factory.CreateConnectionAsync(cancellationToken);
+        var connection = await factory.CreateConnectionAsync(cancellationToken);
 
         // Creating a light-weight channle
-        _channel = await _connection.CreateChannelAsync(cancellationToken: cancellationToken);
+        var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
 
         //   Making sure queue exists before subscribing
-        await _channel.QueueDeclareAsync(
+        await channel.QueueDeclareAsync(
             queue: queueName,
             durable: true,
             exclusive: false,
@@ -53,7 +67,7 @@ class RabbitMqConsumer : IMessageBrokerConsumer
             cancellationToken: cancellationToken
         );
 
-        var consumer = new AsyncEventingBasicConsumer(_channel);
+        var consumer = new AsyncEventingBasicConsumer(channel);
 
         // will fire every damn time a single message hits the DLQ
         consumer.ReceivedAsync += async (model, ea) =>
@@ -88,11 +102,11 @@ class RabbitMqConsumer : IMessageBrokerConsumer
                 _indexStore.AddOrUpdate(dlqMessage);
                 _logger.LogInformation(
                     "Successfully indexed dead-lettered message {MessageId}",
-                    dlqMessage
+                    dlqMessage.MessageId
                 );
 
                 //  Letting RabbitMQ know we've securely cataloged the message
-                await _channel.BasicAckAsync(
+                await channel.BasicAckAsync(
                     ea.DeliveryTag,
                     multiple: false,
                     cancellationToken: CancellationToken.None
@@ -104,20 +118,42 @@ class RabbitMqConsumer : IMessageBrokerConsumer
             }
         };
         // Start listening on queue stream
-        await _channel.BasicConsumeAsync(
+        var consumerTag = await channel.BasicConsumeAsync(
             queue: queueName,
             autoAck: false,
             consumer: consumer,
             cancellationToken: cancellationToken
         );
+
+            _activeConsumers[queueName] = new QueueConsumerHandle(
+                connection,
+                channel,
+                consumerTag
+            );
+        }
+        finally
+        {
+            _consumerLock.Release();
+        }
     }
 
-    public async Task StopConsumingAsync(CancellationToken cancellationToken)
+    public async Task StopConsumingAsync(string queueName, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Closing active RabbitMQ connection channels...");
-        if (_channel != null)
-            await _channel.CloseAsync(cancellationToken: cancellationToken);
-        if (_connection != null)
-            await _connection.CloseAsync(cancellationToken: cancellationToken);
+        if (!_activeConsumers.TryRemove(queueName, out var consumerHandle))
+            return;
+
+        _logger.LogInformation("Closing RabbitMQ consumer for queue {QueueName}...", queueName);
+        await consumerHandle.Channel.BasicCancelAsync(
+            consumerHandle.ConsumerTag,
+            cancellationToken: cancellationToken
+        );
+        await consumerHandle.Channel.CloseAsync(cancellationToken: cancellationToken);
+        await consumerHandle.Connection.CloseAsync(cancellationToken: cancellationToken);
     }
+
+    private sealed record QueueConsumerHandle(
+        IConnection Connection,
+        IChannel Channel,
+        string ConsumerTag
+    );
 }

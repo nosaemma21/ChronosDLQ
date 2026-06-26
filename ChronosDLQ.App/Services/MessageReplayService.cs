@@ -6,11 +6,17 @@ namespace ChronosDLQ.App.Services;
 public class MessageReplayService : IMessageReplayService
 {
     private readonly IMessageIndexStore _indexStore;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<MessageReplayService> _logger;
 
-    public MessageReplayService(IMessageIndexStore indexStore, ILogger<MessageReplayService> logger)
+    public MessageReplayService(
+        IMessageIndexStore indexStore,
+        IConfiguration configuration,
+        ILogger<MessageReplayService> logger
+    )
     {
         _indexStore = indexStore;
+        _configuration = configuration;
         _logger = logger;
     }
 
@@ -34,7 +40,10 @@ public class MessageReplayService : IMessageReplayService
         try
         {
             // open a temp channel to send corrected payload back to queue
-            var factory = new ConnectionFactory { HostName = "localhost" };
+            var factory = new ConnectionFactory
+            {
+                HostName = _configuration["RabbitMq:HostName"] ?? "localhost",
+            };
             using var connection = await factory.CreateConnectionAsync();
             using var channel = await connection.CreateChannelAsync();
 

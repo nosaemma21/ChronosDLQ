@@ -11,9 +11,10 @@ public interface IMessageBrokerConsumer
     Task StartConsumingAsync(string queueName, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Gracefully closes connections and active comms channels
+    /// Gracefully closes the active channel for a queue
     /// </summary>
+    /// <param name="queueName">Name of the queue to stop consuming</param>
     /// <param name="cancellationToken">Token for cancelling operation</param>
     /// <returns>A task</returns>
-    Task StopConsumingAsync(CancellationToken cancellationToken);
+    Task StopConsumingAsync(string queueName, CancellationToken cancellationToken);
 }
