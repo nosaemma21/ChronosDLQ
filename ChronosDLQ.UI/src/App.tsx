@@ -7,6 +7,27 @@ import { api } from "./services/api";
 import { type RabbitMqQueueInfo } from "./types";
 import { showPixelToast } from "./utils/alerts";
 
+const WATCHED_QUEUE_STORAGE_KEY = "chronosdlq:watchedQueues";
+
+function readStoredWatchedQueues(): string[] {
+  try {
+    const storedValue = localStorage.getItem(WATCHED_QUEUE_STORAGE_KEY);
+    const parsedValue = JSON.parse(storedValue ?? "[]") as unknown;
+
+    return Array.isArray(parsedValue)
+      ? parsedValue.filter(
+          (queueName): queueName is string => typeof queueName === "string",
+        )
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+function storeWatchedQueues(queueNames: string[]) {
+  localStorage.setItem(WATCHED_QUEUE_STORAGE_KEY, JSON.stringify(queueNames));
+}
+
 export default function App() {
   const [availableQueues, setAvailableQueues] = useState<RabbitMqQueueInfo[]>(
     [],
@@ -30,25 +51,43 @@ export default function App() {
 
   const loadQueues = useCallback(async () => {
     try {
-      const [queues, watched] = await Promise.all([
+      const [queues, brokerWatchedQueues] = await Promise.all([
         api.getQueues(),
         api.getWatchedQueues(),
       ]);
+      const storedWatchedQueues = readStoredWatchedQueues();
+      const queuesToRestore = storedWatchedQueues.filter(
+        (queueName) => !brokerWatchedQueues.includes(queueName),
+      );
+
+      if (queuesToRestore.length > 0) {
+        await Promise.allSettled(
+          queuesToRestore.map((queueName) => api.watchQueue(queueName)),
+        );
+      }
+
+      const watched =
+        queuesToRestore.length > 0
+          ? await api.getWatchedQueues()
+          : brokerWatchedQueues;
 
       setAvailableQueues(queues);
       setWatchedQueues(watched);
+      storeWatchedQueues(watched);
       setQueueError(null);
 
-      if (!queueDraft && queues.length > 0) {
+      setQueueDraft((currentQueueDraft) => {
+        if (currentQueueDraft || queues.length === 0) return currentQueueDraft;
+
         const firstDlq = queues.find((queue) => queue.name.endsWith(".dlq"));
-        setQueueDraft(firstDlq?.name ?? queues[0].name);
-      }
+        return firstDlq?.name ?? queues[0].name;
+      });
     } catch (err: unknown) {
       setQueueError(
         err instanceof Error ? err.message : "Failed to load RabbitMQ queues.",
       );
     }
-  }, [queueDraft]);
+  }, []);
 
   useEffect(() => {
     void loadQueues();
@@ -80,6 +119,11 @@ export default function App() {
     setIsQueueActionPending(true);
     try {
       await api.unwatchQueue(queueName);
+      const nextWatchedQueues = watchedQueues.filter(
+        (watchedQueueName) => watchedQueueName !== queueName,
+      );
+      setWatchedQueues(nextWatchedQueues);
+      storeWatchedQueues(nextWatchedQueues);
       await loadQueues();
     } catch (err: unknown) {
       setQueueError(
@@ -120,6 +164,7 @@ export default function App() {
           error={error ?? queueError}
           availableQueues={availableQueues}
           watchedQueues={watchedQueues}
+          hasWatchedQueues={watchedQueues.length > 0}
           queueDraft={queueDraft}
           isQueueActionPending={isQueueActionPending}
           onQueueDraftChange={setQueueDraft}

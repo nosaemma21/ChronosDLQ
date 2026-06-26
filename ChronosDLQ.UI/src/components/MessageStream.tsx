@@ -8,6 +8,7 @@ interface MessageStreamProps {
   error: string | null;
   availableQueues: RabbitMqQueueInfo[];
   watchedQueues: string[];
+  hasWatchedQueues: boolean;
   queueDraft: string;
   isQueueActionPending: boolean;
   onQueueDraftChange: (queueName: string) => void;
@@ -23,6 +24,7 @@ export function MessageStream({
   error,
   availableQueues,
   watchedQueues,
+  hasWatchedQueues,
   queueDraft,
   isQueueActionPending,
   onQueueDraftChange,
@@ -112,7 +114,11 @@ export function MessageStream({
       </div>
 
       <div className="pixel-panel min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
-        {isLoading && messages.length === 0 ? (
+        {!hasWatchedQueues ? (
+          <div className="border-2 border-dashed border-[#263e56] p-8 text-center font-mono text-xs text-[#6d8fb0]">
+            Select a queue and press Watch to start streaming traces.
+          </div>
+        ) : isLoading && messages.length === 0 ? (
           <div className="p-4 font-mono text-sm text-[#6d8fb0]">
             Streaming index layers...
           </div>
