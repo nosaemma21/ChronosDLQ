@@ -33,8 +33,8 @@ export function MessageStream({
   const dlqQueues = availableQueues.filter((queue) => queue.name.endsWith(".dlq"));
 
   return (
-    <section className="col-span-4 space-y-4 overflow-y-auto border-r border-slate-900 bg-slate-950 p-4">
-      <div className="space-y-3 rounded-lg border border-slate-900 bg-slate-900/30 p-3">
+    <section className="col-span-4 flex min-h-0 flex-col gap-4 overflow-hidden border-r border-slate-900 bg-slate-950 p-4">
+      <div className="shrink-0 space-y-3 rounded-lg border border-slate-900 bg-slate-900/30 p-3">
         <div className="font-mono text-xs tracking-wider text-slate-500 uppercase">
           Queue Watchlist
         </div>
@@ -72,7 +72,7 @@ export function MessageStream({
         </div>
 
         {dlqQueues.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex max-h-24 flex-wrap gap-2 overflow-y-auto pr-1">
             {dlqQueues.map((queue) => (
               <button
                 type="button"
@@ -86,7 +86,7 @@ export function MessageStream({
           </div>
         ) : null}
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex max-h-20 flex-wrap gap-2 overflow-y-auto pr-1">
           {watchedQueues.length === 0 ? (
             <span className="font-mono text-xs text-slate-600">
               No queues watched yet.
@@ -107,32 +107,34 @@ export function MessageStream({
         </div>
       </div>
 
-      <div className="px-1 font-mono text-xs tracking-wider text-slate-500 uppercase">
+      <div className="shrink-0 px-1 font-mono text-xs tracking-wider text-slate-500 uppercase">
         Active Poison Stream ({messages.length})
       </div>
 
-      {isLoading && messages.length === 0 ? (
-        <div className="p-4 font-mono text-xs text-slate-600">
-          Streaming index layers...
-        </div>
-      ) : error ? (
-        <div className="rounded-lg border border-amber-900/30 bg-amber-950/20 p-4 font-mono text-xs text-amber-400">
-          {error}
-        </div>
-      ) : messages.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-900 p-8 text-center font-mono text-xs text-slate-600">
-          Watched queues are clear.
-        </div>
-      ) : (
-        messages.map((message) => (
-          <MessageCard
-            key={message.messageId}
-            message={message}
-            isSelected={selectedMessageId === message.messageId}
-            onSelect={onSelectMessage}
-          />
-        ))
-      )}
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
+        {isLoading && messages.length === 0 ? (
+          <div className="p-4 font-mono text-xs text-slate-600">
+            Streaming index layers...
+          </div>
+        ) : error ? (
+          <div className="rounded-lg border border-amber-900/30 bg-amber-950/20 p-4 font-mono text-xs text-amber-400">
+            {error}
+          </div>
+        ) : messages.length === 0 ? (
+          <div className="rounded-xl border border-dashed border-slate-900 p-8 text-center font-mono text-xs text-slate-600">
+            Watched queues are clear.
+          </div>
+        ) : (
+          messages.map((message) => (
+            <MessageCard
+              key={message.messageId}
+              message={message}
+              isSelected={selectedMessageId === message.messageId}
+              onSelect={onSelectMessage}
+            />
+          ))
+        )}
+      </div>
     </section>
   );
 }
