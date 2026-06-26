@@ -11,7 +11,6 @@ const pixelAlertClasses = {
   timerProgressBar: "chronos-alert-progress",
   confirmButton: "chronos-alert-button chronos-alert-confirm",
   cancelButton: "chronos-alert-button chronos-alert-cancel",
-  icon: "chronos-alert-icon",
 };
 
 const baseAlertOptions: SweetAlertOptions = {

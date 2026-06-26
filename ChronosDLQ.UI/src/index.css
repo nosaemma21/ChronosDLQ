@@ -126,10 +126,6 @@ body {
   font-size: 0.875rem;
 }
 
-.chronos-alert-icon {
-  border-radius: 0;
-}
-
 .chronos-alert-button {
   border: 1px solid #1f2d3e;
   padding: 0.45rem 0.8rem;
