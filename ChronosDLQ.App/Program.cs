@@ -3,13 +3,23 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(
         "ChronosUiPolicy",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173").AllowAnyMethod().AllowAnyHeader();
+            // policy.WithOrigins("http://localhost:5173").AllowAnyMethod().AllowAnyHeader();
+            if (builder.Environment.IsDevelopment() && allowedOrigins.Length == 0)
+            {
+                // vite def
+                policy.WithOrigins("http://localhost:5173").AllowAnyMethod().AllowAnyHeader();
+                return;
+            }
+
+            policy.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader();
         }
     );
 });
