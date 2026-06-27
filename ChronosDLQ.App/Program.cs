@@ -42,6 +42,45 @@ builder.Services.AddScoped<IMessageReplayService, MessageReplayService>();
 
 var app = builder.Build();
 
+var chronosApiKey = builder.Configuration["Chronos:ApiKey"];
+
+// will throw when non-dev env has no key ❌
+if (!app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(chronosApiKey))
+{
+    throw new InvalidOperationException(
+        "Chronos API key must be configured outside dev environment"
+    );
+}
+
+app.Use(
+    async (cxt, next) =>
+    {
+        // for preflight requests
+        if (cxt.Request.Method == HttpMethods.Options)
+        {
+            await next();
+            return;
+        }
+
+        if (app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(chronosApiKey))
+        {
+            await next();
+            return;
+        }
+
+        var providedApiKey = cxt.Request.Headers["X-CHRONOS-API-KEY"].FirstOrDefault();
+
+        if (!string.Equals(providedApiKey, chronosApiKey, StringComparison.Ordinal))
+        {
+            cxt.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await cxt.Response.WriteAsJsonAsync(new { message = "Unauthorized request" });
+            return;
+        }
+
+        await next();
+    }
+);
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
