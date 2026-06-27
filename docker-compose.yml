@@ -1,0 +1,15 @@
+services:
+  chronos-postgres:
+    image: postgres:17
+    container_name: chronos-postgres
+    environment:
+      POSTGRES_DB: chronos_dlq
+      POSTGRES_USER: chronos
+      POSTGRES_PASSWORD: chronos_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - chronos-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  chronos-postgres-data:
