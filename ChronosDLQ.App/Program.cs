@@ -24,6 +24,13 @@ builder.Services.AddCors(options =>
     );
 });
 
+builder.Services.AddHsts(options =>
+{
+    options.MaxAge = TimeSpan.FromDays(365); //one year access
+    options.IncludeSubDomains = true;
+    options.Preload = true; //browser preload availability
+});
+
 //Setting up serilog
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
@@ -163,7 +170,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+    app.UseHttpsRedirection();
+}
 app.UseCors("ChronosUiPolicy");
 app.UseAuthorization();
 app.MapControllers();
