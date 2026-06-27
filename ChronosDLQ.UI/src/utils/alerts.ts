@@ -8,6 +8,7 @@ const pixelAlertClasses = {
   popup: "chronos-alert",
   title: "chronos-alert-title",
   htmlContainer: "chronos-alert-body",
+  actions: "chronos-alert-actions",
   timerProgressBar: "chronos-alert-progress",
   confirmButton: "chronos-alert-button chronos-alert-confirm",
   cancelButton: "chronos-alert-button chronos-alert-cancel",
