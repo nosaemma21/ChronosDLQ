@@ -107,6 +107,7 @@ app.Use(
                 await cxt.Response.WriteAsJsonAsync(
                     new { message = "Chronos Op permission required" }
                 );
+                return;
             }
         }
 
