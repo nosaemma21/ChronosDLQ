@@ -7,12 +7,18 @@ import {
 
 const BASE_URL = "http://localhost:5103/api";
 const API_KEY = import.meta.env.VITE_CHRONOS_API_KEY ?? "some_api_key";
+const OPERATOR_KEY =
+  import.meta.env.VITE_CHRONOS_OPERATOR_KEY ?? "some_chronos_operator_key";
 
 const chronosHeaders = (extraHeaders?: HeadersInit): HeadersInit => {
   return {
     "X-CHRONOS-API-KEY": API_KEY,
     ...extraHeaders,
   };
+};
+
+const chronosOperatorHeaders = (extraHeaders?: HeadersInit): HeadersInit => {
+  return { "X-CHRONOS-OPERATOR-KEY": OPERATOR_KEY, ...extraHeaders };
 };
 
 export const api = {
@@ -75,7 +81,7 @@ export const api = {
   async replayMessage(request: ReplayRequest): Promise<{ message: string }> {
     const response = await fetch(`${BASE_URL}/messages/replay`, {
       method: "POST",
-      headers: chronosHeaders({ "Content-Type": "application/json" }),
+      headers: chronosOperatorHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(request),
     });
     if (!response.ok) throw new Error("Replay failed.");
@@ -85,7 +91,7 @@ export const api = {
   async discardMessage(messageId: string): Promise<{ message: string }> {
     const response = await fetch(`${BASE_URL}/messages/${messageId}`, {
       method: "DELETE",
-      headers: chronosHeaders(),
+      headers: chronosOperatorHeaders(),
     });
     if (!response.ok) throw new Error("Failed to remove message.");
     return response.json();
