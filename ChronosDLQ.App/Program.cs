@@ -43,9 +43,17 @@ builder.Services.AddScoped<IMessageReplayService, MessageReplayService>();
 var app = builder.Build();
 
 var chronosApiKey = builder.Configuration["Chronos:ApiKey"];
+var chronosOpertorKey = builder.Configuration["Chronos:OperatorKey"];
 
 // will throw when non-dev env has no key ❌
 if (!app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(chronosApiKey))
+{
+    throw new InvalidOperationException(
+        "Chronos API key must be configured outside dev environment"
+    );
+}
+
+if (!app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(chronosOpertorKey))
 {
     throw new InvalidOperationException(
         "Chronos API key must be configured outside dev environment"
@@ -75,6 +83,31 @@ app.Use(
             cxt.Response.StatusCode = StatusCodes.Status401Unauthorized;
             await cxt.Response.WriteAsJsonAsync(new { message = "Unauthorized request" });
             return;
+        }
+
+        var isReplayRequest =
+            cxt.Request.Method == HttpMethods.Post
+            && cxt.Request.Path.StartsWithSegments("/api/messages/replay");
+
+        var isDiscardRequest =
+            cxt.Request.Method == HttpMethods.Delete
+            && cxt.Request.Path.StartsWithSegments("/api/messages");
+
+        var requiresOperatorPermission = isReplayRequest || isDiscardRequest;
+
+        if (requiresOperatorPermission)
+        {
+            var providedOperatorKey = cxt
+                .Request.Headers["X-CHRONOS-OPERATOR-KEY"]
+                .FirstOrDefault();
+
+            if (!string.Equals(providedOperatorKey, chronosOpertorKey, StringComparison.Ordinal))
+            {
+                cxt.Response.StatusCode = StatusCodes.Status403Forbidden;
+                await cxt.Response.WriteAsJsonAsync(
+                    new { message = "Chronos Op permission required" }
+                );
+            }
         }
 
         await next();
