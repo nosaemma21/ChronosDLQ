@@ -19,6 +19,11 @@ public class MessagesController : ControllerBase
         _replayService = replayService;
     }
 
+    private string GetAuditActor()
+    {
+        return Request.Headers["X-CHRONOS-ACTOR"].FirstOrDefault() ?? "Anonymous";
+    }
+
     [HttpGet]
     public ActionResult<IEnumerable<DeadLetterMessage>> GetAllMessages()
     {
@@ -92,6 +97,24 @@ public class MessagesController : ControllerBase
             return BadRequest(new { message = "Target queue must be specified" });
         }
 
+        var existingMessage = _indexStore.GetById(request.MessageId);
+        if (existingMessage == null)
+        {
+            return NotFound(
+                new { message = $"Message {request.MessageId} not found in index store" }
+            );
+        }
+
+        Log.Information(
+            "AUDIT replay requested by {Actor} at {Timestamp}. SourceQueue={SourceQueue}, TargetQueue={TargetQueue}, MessageId={MessageId}, PayloadHash={PayloadHash}",
+            GetAuditActor(),
+            DateTime.UtcNow,
+            existingMessage.QueueName,
+            request.TargetQueue,
+            request.MessageId,
+            PayloadHasher.Sha256(request.ModifiedPayload)
+        );
+
         var replayed = await _replayService.ReplayMessageAsync(
             request.MessageId,
             request.TargetQueue,
@@ -109,6 +132,22 @@ public class MessagesController : ControllerBase
     [HttpDelete("{messageId}")]
     public IActionResult DiscardMessage(string messageId)
     {
+        var existingMessage = _indexStore.GetById(messageId);
+        if (existingMessage == null)
+        {
+            return NotFound(new { message = "Target message could not be located" });
+        }
+
+        Log.Information(
+            "AUDIT discard requested by {Actor} at {Timestamp}. SourceQueue={SourceQueue}, TargetQueue={TargetQueue}, MessageId={MessageId}, PayloadHash={PayloadHash}",
+            GetAuditActor(),
+            DateTime.UtcNow,
+            existingMessage.QueueName,
+            "none",
+            messageId,
+            PayloadHasher.Sha256(existingMessage.RawPayload)
+        );
+
         var evicted = _indexStore.TryRemoveMessage(messageId);
 
         if (!evicted)

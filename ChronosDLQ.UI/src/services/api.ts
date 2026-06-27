@@ -9,6 +9,7 @@ const BASE_URL = "http://localhost:5103/api";
 const API_KEY = import.meta.env.VITE_CHRONOS_API_KEY ?? "some_api_key";
 const OPERATOR_KEY =
   import.meta.env.VITE_CHRONOS_OPERATOR_KEY ?? "some_chronos_operator_key";
+const ACTOR = import.meta.env.VITE_CHRONOS_ACTOR ?? "local-operator";
 
 const chronosHeaders = (extraHeaders?: HeadersInit): HeadersInit => {
   return {
@@ -20,6 +21,7 @@ const chronosHeaders = (extraHeaders?: HeadersInit): HeadersInit => {
 const chronosOperatorHeaders = (extraHeaders?: HeadersInit): HeadersInit => {
   return chronosHeaders({
     "X-CHRONOS-OPERATOR-KEY": OPERATOR_KEY,
+    "X-CHRONOS-ACTOR": ACTOR,
     ...extraHeaders,
   });
 };
