@@ -39,7 +39,7 @@ Log.Logger = new LoggerConfiguration()
     )
     .CreateLogger();
 
-// Using serilog as our default logger
+// Using serilog
 builder.Host.UseSerilog();
 
 builder.Services.AddControllers().AddNewtonsoftJson();
@@ -178,6 +178,11 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseCors("ChronosUiPolicy");
 app.UseAuthorization();
+app.UseSerilogRequestLogging(options =>
+{
+    options.MessageTemplate =
+        "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
+});
 app.MapControllers();
 
 try
