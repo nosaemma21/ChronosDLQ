@@ -60,7 +60,18 @@ public class MessageReplayService : IMessageReplayService
             var properties = new BasicProperties
             {
                 MessageId = messageId,
+                CorrelationId = existingMessage.CorrelationId,
+                ContentType = existingMessage.ContentType,
+                Type = existingMessage.Type,
+                ReplyTo = existingMessage.ReplyTo,
+                Expiration = existingMessage.Expiration,
+                AppId = existingMessage.AppId,
                 Persistent = true, //durable on disk
+                Priority = existingMessage.Priority,
+                Headers = existingMessage.Headers.ToDictionary(
+                    header => header.Key,
+                    header => (object?)header.Value
+                ),
             };
 
             _logger.LogInformation(

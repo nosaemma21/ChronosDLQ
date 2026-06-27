@@ -93,6 +93,13 @@ class RabbitMqConsumer : IMessageBrokerConsumer
                             exceptionReason = Encoding.UTF8.GetString(reasonBytes);
                     }
 
+                    var headers =
+                        ea.BasicProperties.Headers?.ToDictionary(
+                            header => header.Key,
+                            header => HeaderValueToString(header.Value)
+                        )
+                        ?? new Dictionary<string, string>();
+
                     var dlqMessage = new DeadLetterMessage
                     {
                         MessageId = ea.BasicProperties.MessageId ?? Guid.NewGuid().ToString(),
@@ -100,6 +107,14 @@ class RabbitMqConsumer : IMessageBrokerConsumer
                         RawPayload = rawPayload,
                         ExceptionMessage = exceptionReason,
                         Timestamp = DateTime.UtcNow,
+                        CorrelationId = ea.BasicProperties.CorrelationId,
+                        ContentType = ea.BasicProperties.ContentEncoding,
+                        Type = ea.BasicProperties.ReplyTo,
+                        Expiration = ea.BasicProperties.ReplyTo,
+                        AppId = ea.BasicProperties.AppId,
+                        Persistent = ea.BasicProperties.Persistent,
+                        Priority = ea.BasicProperties.Priority,
+                        Headers = headers,
                     };
 
                     //  Thread-safe update ✅✅
@@ -156,4 +171,15 @@ class RabbitMqConsumer : IMessageBrokerConsumer
         IChannel Channel,
         string ConsumerTag
     );
+
+    private static string HeaderValueToString(object? value)
+    {
+        if (value is null)
+            return string.Empty;
+
+        if (value is byte[] bytes)
+            return Encoding.UTF8.GetString(bytes);
+
+        return value.ToString() ?? string.Empty;
+    }
 }
