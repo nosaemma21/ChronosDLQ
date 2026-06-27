@@ -14,20 +14,12 @@ export function MessageCard({
   return (
     <div
       onClick={() => onSelect(message)}
-      className={`group grid cursor-pointer grid-cols-[32px_1fr] gap-3 border-2 p-2 transition-all duration-200 ${
+      className={`group cursor-pointer border-2 p-2 transition-all duration-200 ${
         isSelected
           ? "active-glow border-[#d13f4d] bg-[#14233a]"
           : "border-[#263e56] bg-[#09121e] shadow-[3px_3px_0_#020617] hover:border-[#6d8fb0] hover:bg-[#102034]"
       }`}
     >
-      <div className="flex h-16 w-8 flex-col items-center justify-between border-2 border-[#52718e] bg-[#122033] p-1 shadow-[2px_2px_0_#020617]">
-        <div className="h-8 w-4 border border-[#7c1f2a] bg-[#a51f31]" />
-        <div className="flex gap-0.5">
-          <span className="h-1 w-1 bg-[#ffcf5c]" />
-          <span className="h-1 w-1 bg-[#ffcf5c]" />
-          <span className="h-1 w-1 bg-[#ffcf5c]" />
-        </div>
-      </div>
       <div className="min-w-0">
         <div className="mb-1 flex items-center justify-between gap-2">
           <span className="border-2 border-[#7c1f2a] bg-[#3b1018] px-2 py-0.5 font-mono text-xs font-bold text-[#ff7b86]">
