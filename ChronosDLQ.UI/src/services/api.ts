@@ -18,7 +18,10 @@ const chronosHeaders = (extraHeaders?: HeadersInit): HeadersInit => {
 };
 
 const chronosOperatorHeaders = (extraHeaders?: HeadersInit): HeadersInit => {
-  return { "X-CHRONOS-OPERATOR-KEY": OPERATOR_KEY, ...extraHeaders };
+  return chronosHeaders({
+    "X-CHRONOS-OPERATOR-KEY": OPERATOR_KEY,
+    ...extraHeaders,
+  });
 };
 
 export const api = {
@@ -59,7 +62,7 @@ export const api = {
   async unwatchQueue(queueName: string): Promise<{ message: string }> {
     const response = await fetch(
       `${BASE_URL}/queues/watched/${encodeURIComponent(queueName)}`,
-      { method: "DELETE", headers: chronosHeaders() },
+      { method: "DELETE", headers: chronosOperatorHeaders() },
     );
     if (!response.ok) throw new Error("Failed to stop watching queue.");
     return response.json();
