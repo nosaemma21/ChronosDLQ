@@ -45,6 +45,19 @@ var app = builder.Build();
 var chronosApiKey = builder.Configuration["Chronos:ApiKey"];
 var chronosOpertorKey = builder.Configuration["Chronos:OperatorKey"];
 
+var rabbitMqUserName = builder.Configuration["RabbitMq:UserName"];
+var rabbitMqPassword = builder.Configuration["RabbitMQ:Password"];
+
+if (!app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(rabbitMqUserName))
+{
+    throw new InvalidOperationException("RabbitMQ username must be configured outside Dev env.");
+}
+
+if (!app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(rabbitMqPassword))
+{
+    throw new InvalidOperationException("RabbitMQ password must be configured outside Dev env.");
+}
+
 // will throw when non-dev env has no key ❌
 if (!app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(chronosApiKey))
 {
