@@ -48,6 +48,15 @@ var chronosOpertorKey = builder.Configuration["Chronos:OperatorKey"];
 var rabbitMqUserName = builder.Configuration["RabbitMq:UserName"];
 var rabbitMqPassword = builder.Configuration["RabbitMQ:Password"];
 
+var rabbitMqManagementBaseUrl = builder.Configuration["RabbitMq:ManagementBaseUrl"];
+
+if (!app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(rabbitMqManagementBaseUrl))
+{
+    throw new InvalidOperationException(
+        "RabbitMQ Management API base URL must be configured outside Development."
+    );
+}
+
 if (!app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(rabbitMqUserName))
 {
     throw new InvalidOperationException("RabbitMQ username must be configured outside Dev env.");
@@ -56,6 +65,14 @@ if (!app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(rabbitMqUserNa
 if (!app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(rabbitMqPassword))
 {
     throw new InvalidOperationException("RabbitMQ password must be configured outside Dev env.");
+}
+
+if (
+    !app.Environment.IsDevelopment()
+    && string.Equals(rabbitMqUserName, "guest", StringComparison.Ordinal)
+)
+{
+    throw new InvalidOperationException("No RabbitMQ guest user outside dev env");
 }
 
 // will throw when non-dev env has no key ❌

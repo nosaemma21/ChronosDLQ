@@ -28,10 +28,20 @@ public class RabbitMqManagementQueueDiscovery : IQueueDiscoveryService
         CancellationToken cancellationToken
     )
     {
-        var baseUrl = _configuration["RabbitMq:ManagementBaseUrl"] ?? "http://localhost:15672";
+        var baseUrl =
+            _configuration["RabbitMq:ManagementBaseUrl"]
+            ?? throw new InvalidOperationException(
+                "RabbitMQ Management API base URL is not configured."
+            );
         var virtualHost = _configuration["RabbitMq:VirtualHost"] ?? "/";
-        var userName = _configuration["RabbitMq:UserName"] ?? "guest";
-        var password = _configuration["RabbitMq:Password"] ?? "guest";
+        var userName =
+            _configuration["RabbitMq:UserName"]
+            ?? throw new InvalidOperationException("RabbitMQ username is not configured.");
+        ;
+        var password =
+            _configuration["RabbitMq:Password"]
+            ?? throw new InvalidOperationException("RabbitMQ password is not configured.");
+        ;
         var encodedVhost = Uri.EscapeDataString(virtualHost);
 
         using var request = new HttpRequestMessage(
