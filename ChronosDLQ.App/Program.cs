@@ -57,6 +57,7 @@ if (!app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(rabbitMqManage
     );
 }
 
+// ------------ MANAGER AUTH SECURITY -----------
 if (!app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(rabbitMqUserName))
 {
     throw new InvalidOperationException("RabbitMQ username must be configured outside Dev env.");
@@ -75,6 +76,7 @@ if (
     throw new InvalidOperationException("No RabbitMQ guest user outside dev env");
 }
 
+//---------- API AUTH --------------
 // will throw when non-dev env has no key ❌
 if (!app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(chronosApiKey))
 {
