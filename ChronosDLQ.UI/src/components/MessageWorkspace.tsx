@@ -75,14 +75,14 @@ export function MessageWorkspace({
               <button
                 onClick={handleDiscardMessage}
                 disabled={anyActiveNetworkAction}
-                className="pixel-button cursor-pointer bg-[#8f4f52] px-3.5 py-1.5 font-mono text-xs font-semibold uppercase leading-none text-[#1f0b0d] transition-all hover:bg-[#b86c6f] disabled:bg-[#263849] disabled:text-[#6d8fb0]"
+                className="pixel-button cursor-pointer bg-[#8f4f52] px-3.5 py-1.5 font-pixel text-sm font-medium uppercase leading-none text-[#1f0b0d] transition-all hover:bg-[#b86c6f] disabled:bg-[#263849] disabled:text-[#6d8fb0]"
               >
                 {isDiscarding ? "Purging..." : "Discard Trace"}
               </button>
               <button
                 onClick={onReplay}
                 disabled={anyActiveNetworkAction}
-                className="pixel-button cursor-pointer bg-[#79d957] px-3.5 py-1.5 font-mono text-xs font-semibold uppercase leading-none text-[#10210d] transition-all hover:bg-[#9cff78] disabled:bg-[#263849] disabled:text-[#6d8fb0]"
+                className="pixel-button cursor-pointer bg-[#79d957] px-3.5 py-1.5 font-pixel text-sm font-medium uppercase leading-none text-[#10210d] transition-all hover:bg-[#9cff78] disabled:bg-[#263849] disabled:text-[#6d8fb0]"
               >
                 {isSubmitting ? "Replaying..." : "Execute Replay Wizard"}
               </button>
