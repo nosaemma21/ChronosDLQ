@@ -6,22 +6,36 @@ import {
 } from "../types";
 
 const BASE_URL = "http://localhost:5103/api";
+const API_KEY = import.meta.env.VITE_CHRONOS_API_KEY ?? "some_api_key";
+
+const chronosHeaders = (extraHeaders?: HeadersInit): HeadersInit => {
+  return {
+    "X-CHRONOS-API-KEY": API_KEY,
+    ...extraHeaders,
+  };
+};
 
 export const api = {
   async getMessages(): Promise<DeadLetterMessage[]> {
-    const response = await fetch(`${BASE_URL}/messages`);
+    const response = await fetch(`${BASE_URL}/messages`, {
+      headers: chronosHeaders(),
+    });
     if (!response.ok) throw new Error("Failed to stream dead letter logs.");
     return response.json();
   },
 
   async getQueues(): Promise<RabbitMqQueueInfo[]> {
-    const response = await fetch(`${BASE_URL}/queues`);
+    const response = await fetch(`${BASE_URL}/queues`, {
+      headers: chronosHeaders(),
+    });
     if (!response.ok) throw new Error("Failed to discover RabbitMQ queues.");
     return response.json();
   },
 
   async getWatchedQueues(): Promise<string[]> {
-    const response = await fetch(`${BASE_URL}/queues/watched`);
+    const response = await fetch(`${BASE_URL}/queues/watched`, {
+      headers: chronosHeaders(),
+    });
     if (!response.ok) throw new Error("Failed to load watched queues.");
     return response.json();
   },
@@ -29,7 +43,7 @@ export const api = {
   async watchQueue(queueName: string): Promise<{ message: string }> {
     const response = await fetch(`${BASE_URL}/queues/watched`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: chronosHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify({ queueName }),
     });
     if (!response.ok) throw new Error("Failed to watch queue.");
@@ -39,7 +53,7 @@ export const api = {
   async unwatchQueue(queueName: string): Promise<{ message: string }> {
     const response = await fetch(
       `${BASE_URL}/queues/watched/${encodeURIComponent(queueName)}`,
-      { method: "DELETE" },
+      { method: "DELETE", headers: chronosHeaders() },
     );
     if (!response.ok) throw new Error("Failed to stop watching queue.");
     return response.json();
@@ -51,7 +65,7 @@ export const api = {
   ): Promise<DeadLetterMessage> {
     const response = await fetch(`${BASE_URL}/messages/${messageId}`, {
       method: "PATCH",
-      headers: { "Content-Type": "application/json" },
+      headers: chronosHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(operations),
     });
     if (!response.ok) throw new Error("Failed to modify payload.");
@@ -61,7 +75,7 @@ export const api = {
   async replayMessage(request: ReplayRequest): Promise<{ message: string }> {
     const response = await fetch(`${BASE_URL}/messages/replay`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: chronosHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(request),
     });
     if (!response.ok) throw new Error("Replay failed.");
@@ -71,6 +85,7 @@ export const api = {
   async discardMessage(messageId: string): Promise<{ message: string }> {
     const response = await fetch(`${BASE_URL}/messages/${messageId}`, {
       method: "DELETE",
+      headers: chronosHeaders(),
     });
     if (!response.ok) throw new Error("Failed to remove message.");
     return response.json();
