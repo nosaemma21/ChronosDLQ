@@ -1,9 +1,20 @@
+using ChronosDLQ.App.Data;
 using ChronosDLQ.App.Services;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+
+var chronosDbConnectionString =
+    builder.Configuration.GetConnectionString("ChronosDb")
+    ?? throw new InvalidOperationException("ChronosDb connection string is not configured");
+
+builder.Services.AddDbContextFactory<ChronosDbContext>(options =>
+{
+    options.UseNpgsql(chronosDbConnectionString);
+});
 
 builder.Services.AddCors(options =>
 {
@@ -47,7 +58,8 @@ builder.Services.AddControllers().AddNewtonsoftJson();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddSingleton<IMessageIndexStore, MessageIndexStore>();
+// builder.Services.AddSingleton<IMessageIndexStore, MessageIndexStore>();
+builder.Services.AddSingleton<IMessageIndexStore, PostgresMessageIndexStore>();
 
 // Registering RabbitMQ low level core consumer engine
 builder.Services.AddSingleton<IMessageBrokerConsumer, RabbitMqConsumer>();
