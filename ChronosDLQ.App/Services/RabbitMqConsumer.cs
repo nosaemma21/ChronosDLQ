@@ -57,6 +57,43 @@ class RabbitMqConsumer : IMessageBrokerConsumer
             // Opening the persistent TCP socket
             var connection = await factory.CreateConnectionAsync(cancellationToken);
 
+            //on shutdown event
+            connection.ConnectionShutdownAsync += async (_, args) =>
+            {
+                if (_activeConsumers.TryGetValue(queueName, out var handle))
+                {
+                    handle.IsConnected = false;
+                    handle.LastError = args.ReplyText;
+                    handle.LastStatusChangeUtc = DateTime.UtcNow;
+                }
+
+                _logger.LogWarning(
+                    "RabbitMQ connection shutdown for queue {QueueName}. Reason: {Reason}",
+                    queueName,
+                    args.ReplyText
+                );
+
+                await Task.CompletedTask;
+            };
+
+            //on recovery event
+            connection.RecoverySucceededAsync += async (_, _) =>
+            {
+                if (_activeConsumers.TryGetValue(queueName, out var handle))
+                {
+                    handle.IsConnected = true;
+                    handle.LastError = null;
+                    handle.LastStatusChangeUtc = DateTime.UtcNow;
+                }
+
+                _logger.LogInformation(
+                    "RabbitMQ connection recovered for queue {QueueName}",
+                    queueName
+                );
+
+                await Task.CompletedTask;
+            };
+
             // Creating a light-weight channle
             var channel = await connection.CreateChannelAsync(cancellationToken: cancellationToken);
 
@@ -166,11 +203,24 @@ class RabbitMqConsumer : IMessageBrokerConsumer
         await consumerHandle.Connection.CloseAsync(cancellationToken: cancellationToken);
     }
 
-    private sealed record QueueConsumerHandle(
-        IConnection Connection,
-        IChannel Channel,
-        string ConsumerTag
-    );
+    private sealed class QueueConsumerHandle
+    {
+        public QueueConsumerHandle(IConnection connection, IChannel channel, string consumerTag)
+        {
+            Connection = connection;
+            Channel = channel;
+            ConsumerTag = consumerTag;
+            IsConnected = true;
+            LastError = null;
+        }
+
+        public IConnection Connection { get; }
+        public IChannel Channel { get; }
+        public string ConsumerTag { get; }
+        public bool IsConnected { get; set; }
+        public string? LastError { get; set; }
+        public DateTime LastStatusChangeUtc { get; set; } = DateTime.UtcNow;
+    }
 
     private static string HeaderValueToString(object? value)
     {
