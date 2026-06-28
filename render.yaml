@@ -38,7 +38,6 @@ services:
   - type: web
     name: chronosdlq-ui
     runtime: static
-    plan: free
     autoDeployTrigger: commit
     rootDir: ChronosDLQ.UI
     buildCommand: npm ci && npm run build
