@@ -3,8 +3,7 @@ services:
     name: chronosdlq-api
     runtime: docker
     plan: free
-    branch: main
-    autoDeploy: true
+    autoDeployTrigger: commit
     dockerfilePath: ./ChronosDLQ.App/Dockerfile
     dockerContext: .
     healthCheckPath: /api/health
@@ -13,6 +12,8 @@ services:
         value: Production
       - key: ASPNETCORE_URLS
         value: http://+:10000
+      - key: ASPNETCORE_FORWARDEDHEADERS_ENABLED
+        value: "true"
       - key: ConnectionStrings__ChronosDb
         fromDatabase:
           name: chronosdlq-db
@@ -38,10 +39,10 @@ services:
     name: chronosdlq-ui
     runtime: static
     plan: free
-    branch: main
-    autoDeploy: true
-    buildCommand: cd ChronosDLQ.UI && npm ci && npm run build
-    staticPublishPath: ChronosDLQ.UI/dist
+    autoDeployTrigger: commit
+    rootDir: ChronosDLQ.UI
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
     routes:
       - type: rewrite
         source: /*
@@ -62,4 +63,3 @@ databases:
     user: chronos
     plan: free
     postgresMajorVersion: "16"
-    ipAllowList: []
