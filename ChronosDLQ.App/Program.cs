@@ -1,5 +1,9 @@
+using System.Text.Json;
 using ChronosDLQ.App.Data;
+using ChronosDLQ.app.Health;
+using ChronosDLQ.App.Health;
 using ChronosDLQ.App.Services;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -54,6 +58,17 @@ Log.Logger = new LoggerConfiguration()
 builder.Host.UseSerilog();
 
 builder.Services.AddControllers().AddNewtonsoftJson();
+
+// adding healthchecks
+builder
+    .Services.AddHealthChecks()
+    .AddCheck(
+        "api",
+        () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy()
+    )
+    .AddCheck<PostgresHealthCheck>("postgres")
+    .AddCheck<RabbitMqAmqHealthCheck>("rabbitmq-amqp")
+    .AddCheck<RabbitMqManagementHealthCheck>("rabbitmq-management");
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -131,6 +146,13 @@ app.Use(
             return;
         }
 
+        //had to allow allow this run pass the auth
+        if (cxt.Request.Path.StartsWithSegments("/api/health"))
+        {
+            await next();
+            return;
+        }
+
         if (app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(chronosApiKey))
         {
             await next();
@@ -195,6 +217,32 @@ app.UseSerilogRequestLogging(options =>
     options.MessageTemplate =
         "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000} ms";
 });
+
+//healthcheck
+app.MapHealthChecks(
+    "/api/health",
+    new HealthCheckOptions
+    {
+        ResponseWriter = async (context, report) =>
+        {
+            context.Response.ContentType = "application/json";
+
+            var response = new
+            {
+                status = report.Status.ToString(),
+                checks = report.Entries.Select(entry => new
+                {
+                    name = entry.Key,
+                    status = entry.Value.Status.ToString(),
+                    description = entry.Value.Description,
+                }),
+            };
+
+            await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+        },
+    }
+);
+
 app.MapControllers();
 
 try
