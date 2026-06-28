@@ -65,7 +65,7 @@ export function MessageStream({
       <div className="pixel-panel shrink-0 space-y-3 p-3">
         <div className="flex items-center justify-between gap-3">
           <div className="pixel-title text-xl font-bold text-[#f6f1dc] uppercase">
-            RabbitMQ Link
+            Queue Watchlist
           </div>
           <span
             className={`border-2 px-2 py-1 font-mono text-[10px] font-bold uppercase ${
@@ -78,20 +78,20 @@ export function MessageStream({
           </span>
         </div>
 
-        <div className="flex gap-2">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
           <input
             value={connectionUrlDraft}
             onChange={(event) =>
               onConnectionUrlDraftChange(event.target.value)
             }
             placeholder="amqps://user:pass@host/vhost"
-            className="min-w-0 flex-1 border-2 border-[#52718e] bg-[#09121e] px-3 py-2 font-mono text-sm text-[#f6f1dc] shadow-[inset_0_0_0_2px_#020617] outline-none focus:border-[#6af052]"
+            className="min-w-0 border-2 border-[#52718e] bg-[#09121e] px-3 py-2 font-mono text-xs text-[#f6f1dc] shadow-[inset_0_0_0_2px_#020617] outline-none focus:border-[#6af052]"
           />
           <button
             type="button"
             onClick={onSaveConnection}
             disabled={isConnectionPending || !connectionUrlDraft.trim()}
-            className="pixel-button flex min-w-24 items-center justify-center gap-2 bg-[#79d957] px-2.5 py-1.5 font-pixel text-sm font-medium text-[#10210d] uppercase transition hover:bg-[#9cff78] disabled:bg-[#263849] disabled:text-[#6d8fb0]"
+            className="pixel-button flex min-w-18 items-center justify-center gap-2 bg-[#79d957] px-2.5 py-1.5 font-pixel text-xs font-medium text-[#10210d] uppercase transition hover:bg-[#9cff78] disabled:bg-[#263849] disabled:text-[#6d8fb0]"
           >
             {isConnectionPending ? "Linking..." : "Link"}
           </button>
@@ -105,20 +105,14 @@ export function MessageStream({
               : ""}
           </div>
         ) : null}
-      </div>
 
-      <div className="pixel-panel shrink-0 space-y-3 p-3">
-        <div className="pixel-title text-xl font-bold text-[#f6f1dc] uppercase">
-          Queue Watchlist
-        </div>
-
-        <div className="flex gap-2">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 border-t-2 border-[#263e56] pt-3">
           <input
             list="available-queues"
             value={queueDraft}
             onChange={(event) => onQueueDraftChange(event.target.value)}
             placeholder="orders.dlq"
-            className="min-w-0 flex-1 border-2 border-[#52718e] bg-[#09121e] px-3 py-2 font-mono text-sm text-[#f6f1dc] shadow-[inset_0_0_0_2px_#020617] outline-none focus:border-[#6af052]"
+            className="min-w-0 border-2 border-[#52718e] bg-[#09121e] px-3 py-2 font-mono text-sm text-[#f6f1dc] shadow-[inset_0_0_0_2px_#020617] outline-none focus:border-[#6af052]"
           />
           <datalist id="available-queues">
             {availableQueues.map((queue) => (
@@ -133,7 +127,7 @@ export function MessageStream({
             disabled={
               !isBrokerConfigured || isQueueActionPending || !queueDraft.trim()
             }
-            className="pixel-button flex min-w-20 items-center justify-center gap-2 bg-[#79d957] px-2.5 py-1.5 font-pixel text-sm font-medium text-[#10210d] uppercase transition hover:bg-[#9cff78] disabled:bg-[#263849] disabled:text-[#6d8fb0]"
+            className="pixel-button flex min-w-18 items-center justify-center gap-2 bg-[#79d957] px-2.5 py-1.5 font-pixel text-xs font-medium text-[#10210d] uppercase transition hover:bg-[#9cff78] disabled:bg-[#263849] disabled:text-[#6d8fb0]"
           >
             {isQueueActionPending ? (
               <>

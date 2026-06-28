@@ -40,6 +40,7 @@ export default function App() {
     useState<RabbitMqConfiguration | null>(null);
   const [connectionUrlDraft, setConnectionUrlDraft] = useState("");
   const [isConnectionPending, setIsConnectionPending] = useState(false);
+  const isBrokerConfigured = rabbitMqConfiguration?.isConfigured ?? false;
 
   const {
     messages,
@@ -52,6 +53,8 @@ export default function App() {
     selectMessage,
     replaySelectedMessage,
   } = useDeadLetterMessages();
+  const appStatus =
+    error ?? queueError ? "error" : isBrokerConfigured ? "online" : "setup";
 
   const loadQueues = useCallback(async () => {
     try {
@@ -194,7 +197,7 @@ export default function App() {
 
   return (
     <div className="font-display flex h-screen min-h-0 flex-col overflow-hidden p-3 text-[#f6f1dc]">
-      <AppHeader hasError={Boolean(error ?? queueError)} />
+      <AppHeader status={appStatus} />
 
       <main className="mt-3 grid min-h-0 flex-1 grid-cols-12 gap-3 overflow-hidden">
         <MessageStream
