@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using RabbitMQ.Client;
+using ChronosDLQ.App.Services;
 
 namespace ChronosDLQ.app.Health;
 
@@ -19,13 +20,9 @@ public class RabbitMqAmqHealthCheck : IHealthCheck
     {
         try
         {
-            var factory = new ConnectionFactory
-            {
-                HostName = _configuration["RabbitMq:HostName"] ?? "localhost",
-                UserName = _configuration["RabbitMq:UserName"] ?? "guest",
-                Password = _configuration["RabbitMq:Password"] ?? "guest",
-                VirtualHost = _configuration["RabbitMq:VirtualHost"] ?? "/",
-            };
+            var factory = RabbitMqConnectionSettings
+                .FromConfiguration(_configuration)
+                .CreateConnectionFactory();
 
             using var connection = await factory.CreateConnectionAsync(cancellationToken);
 

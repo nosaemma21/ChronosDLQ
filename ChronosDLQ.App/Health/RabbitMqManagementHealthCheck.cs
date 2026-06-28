@@ -1,4 +1,5 @@
 using System.Text;
+using ChronosDLQ.App.Services;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace ChronosDLQ.App.Health;
@@ -22,8 +23,8 @@ public class RabbitMqManagementHealthCheck : IHealthCheck
         CancellationToken cancellationToken = default
     )
     {
-        //   throw new NotImplementedException();
-        var baseUrl = _configuration["RabbitMq:ManagementBaseUrl"];
+        var settings = RabbitMqConnectionSettings.FromConfiguration(_configuration);
+        var baseUrl = settings.ManagementBaseUrl;
         if (string.IsNullOrWhiteSpace(baseUrl))
         {
             return HealthCheckResult.Unhealthy("RabbitMQ Management API base url missing");
@@ -31,16 +32,13 @@ public class RabbitMqManagementHealthCheck : IHealthCheck
 
         try
         {
-            var userName = _configuration["RabbitMq:UserName"] ?? "guest";
-            var password = _configuration["RabbitMq:Password"] ?? "guest";
-
             using var request = new HttpRequestMessage(
                 HttpMethod.Get,
                 $"{baseUrl.TrimEnd('/')}/api/overview"
             );
 
             var authValue = Convert.ToBase64String(
-                Encoding.ASCII.GetBytes($"{userName}:{password}")
+                Encoding.ASCII.GetBytes($"{settings.UserName}:{settings.Password}")
             );
 
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(

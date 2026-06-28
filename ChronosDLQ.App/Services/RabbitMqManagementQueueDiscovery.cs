@@ -28,28 +28,22 @@ public class RabbitMqManagementQueueDiscovery : IQueueDiscoveryService
         CancellationToken cancellationToken
     )
     {
+        var settings = RabbitMqConnectionSettings.FromConfiguration(_configuration);
         var baseUrl =
-            _configuration["RabbitMq:ManagementBaseUrl"]
+            settings.ManagementBaseUrl
             ?? throw new InvalidOperationException(
                 "RabbitMQ Management API base URL is not configured."
             );
-        var virtualHost = _configuration["RabbitMq:VirtualHost"] ?? "/";
-        var userName =
-            _configuration["RabbitMq:UserName"]
-            ?? throw new InvalidOperationException("RabbitMQ username is not configured.");
-        ;
-        var password =
-            _configuration["RabbitMq:Password"]
-            ?? throw new InvalidOperationException("RabbitMQ password is not configured.");
-        ;
-        var encodedVhost = Uri.EscapeDataString(virtualHost);
+        var encodedVhost = Uri.EscapeDataString(settings.VirtualHost);
 
         using var request = new HttpRequestMessage(
             HttpMethod.Get,
             $"{baseUrl.TrimEnd('/')}/api/queues/{encodedVhost}"
         );
 
-        var authValue = Convert.ToBase64String(Encoding.ASCII.GetBytes($"{userName}:{password}"));
+        var authValue = Convert.ToBase64String(
+            Encoding.ASCII.GetBytes($"{settings.UserName}:{settings.Password}")
+        );
         request.Headers.Authorization = new AuthenticationHeaderValue("Basic", authValue);
 
         using var response = await _httpClient.SendAsync(request, cancellationToken);

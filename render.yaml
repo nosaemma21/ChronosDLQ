@@ -24,16 +24,8 @@ services:
         sync: false
       - key: Chronos__OperatorKey
         sync: false
-      - key: RabbitMq__HostName
+      - key: RabbitMq__ConnectionUrl
         sync: false
-      - key: RabbitMq__ManagementBaseUrl
-        sync: false
-      - key: RabbitMq__UserName
-        sync: false
-      - key: RabbitMq__Password
-        sync: false
-      - key: RabbitMq__VirtualHost
-        value: /
 
   - type: web
     name: chronosdlq-ui

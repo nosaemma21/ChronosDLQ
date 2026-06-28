@@ -40,19 +40,9 @@ class RabbitMqConsumer : IMessageBrokerConsumer
                 "Connecting to RabbitMQ broker for queue {QueueName}...",
                 queueName
             );
-            var factory = new ConnectionFactory
-            {
-                HostName = _configuration["RabbitMq:HostName"] ?? "localhost",
-
-                // checking for connection drops and auto-reconnect
-                AutomaticRecoveryEnabled = true,
-
-                //creating queues when reconnecting
-                TopologyRecoveryEnabled = true,
-
-                //Retry every 10 seconds
-                NetworkRecoveryInterval = TimeSpan.FromSeconds(10),
-            };
+            var factory = RabbitMqConnectionSettings
+                .FromConfiguration(_configuration)
+                .CreateConnectionFactory(automaticRecoveryEnabled: true);
 
             // Opening the persistent TCP socket
             var connection = await factory.CreateConnectionAsync(cancellationToken);

@@ -40,10 +40,9 @@ public class MessageReplayService : IMessageReplayService
         try
         {
             // open a temp channel to send corrected payload back to queue
-            var factory = new ConnectionFactory
-            {
-                HostName = _configuration["RabbitMq:HostName"] ?? "localhost",
-            };
+            var factory = RabbitMqConnectionSettings
+                .FromConfiguration(_configuration)
+                .CreateConnectionFactory();
             using var connection = await factory.CreateConnectionAsync();
             using var channel = await connection.CreateChannelAsync();
 

@@ -89,10 +89,10 @@ var app = builder.Build();
 var chronosApiKey = builder.Configuration["Chronos:ApiKey"];
 var chronosOpertorKey = builder.Configuration["Chronos:OperatorKey"];
 
-var rabbitMqUserName = builder.Configuration["RabbitMq:UserName"];
-var rabbitMqPassword = builder.Configuration["RabbitMQ:Password"];
-
-var rabbitMqManagementBaseUrl = builder.Configuration["RabbitMq:ManagementBaseUrl"];
+var rabbitMqSettings = RabbitMqConnectionSettings.FromConfiguration(builder.Configuration);
+var rabbitMqUserName = rabbitMqSettings.UserName;
+var rabbitMqPassword = rabbitMqSettings.Password;
+var rabbitMqManagementBaseUrl = rabbitMqSettings.ManagementBaseUrl;
 
 if (!app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(rabbitMqManagementBaseUrl))
 {
