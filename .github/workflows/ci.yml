@@ -1,0 +1,97 @@
+name: ChronosDLQ CI
+
+on:
+   push:
+      branches:
+         - main
+   pull_request:
+      branches:
+         - main
+
+jobs:
+   backend:
+      name: Backend Tests
+      runs-on: ubuntu-latest
+
+      services:
+         postgres:
+            image: postgres:17
+            env:
+               POSTGRES_DB: chronos_dlq
+               POSTGRES_USER: chronos
+               POSTGRES_PASSWORD: chronos_dev_password
+            ports:
+               - 5432:5432
+            options: >-
+               --health-cmd="pg_isready -U chronos -d chronos_dlq"
+               --health-interval=10s
+               --health-timeout=5s
+               --health-retries=5
+         
+         rabbitmq:
+            image: rabbitmq:4-management
+            env:
+               RABBITMQ_DEFAULT_USER: guest
+               RABBITMQ_DEFAULT_PASS: guest
+            ports:
+               - 5672:5672
+               - 15762:15762
+            options: >-
+               --health-cmd="rabbitmq-diagnostics -q ping"
+               --health-interval-10s
+               --health-timeout=5s
+               --health-retries=5
+      
+      env:
+         ASPNETCORE_ENVIRONMENT: Development
+         ConnectionStrings__ChronosDb: Host=localhost;Port=5432;Database=chronos_dlq;Username=chronos;Password=chronos_dev_password
+         Chronos__ApiKey: some_api_key
+         Chronos__OperatorKey: some_chronos_operator_key
+         RabbitMq__HostName: localhost
+         RabbitMq__ManagementBaseUrl: http://localhost:15672
+         RabbitMq__UserName: guest
+         RabbitMq__Password: guest
+         RabbitMq__VirtualHost: /
+      
+      steps:
+         - name: Checkout
+           uses: actions/checkout@v4
+
+         - name: Setup .NET
+           uses: actions/setup-dotnet@v4
+           with:
+            dotnet-version: 10.0.x
+
+         - name: Restore backend
+           run: dotnet restore
+         
+         - name: Build backend
+           run: dotnet build --no-restore
+
+         - name: Run backend tests
+           run: dotnet test --no-build --verbosity normal
+
+   frontend:
+      name: Frontend Build
+      runs-on: ubuntu-latest
+
+      defaults: 
+         run:
+            working-directory: ChronosDLQ.UI
+      
+      steps:
+         - name: Checkout
+           uses: actions/checkout@v4
+
+         - name: Setup Node
+           uses: action/setup-node@v4
+           with:
+            node-version: 24
+            cache: npm
+            cache-dependency-path: ChronosDLQ.UI/package-lock.json
+
+         - name: Install frontend dependencies
+           run: npm ci
+
+         - name: Build frontend
+           run: npm run build
