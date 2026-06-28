@@ -10,17 +10,17 @@ namespace ChronosDLQ.App.Services;
 public class RabbitMqManagementQueueDiscovery : IQueueDiscoveryService
 {
     private readonly HttpClient _httpClient;
-    private readonly IConfiguration _configuration;
+    private readonly IRabbitMqConnectionSettingsProvider _settingsProvider;
     private readonly ILogger<RabbitMqManagementQueueDiscovery> _logger;
 
     public RabbitMqManagementQueueDiscovery(
         HttpClient httpClient,
-        IConfiguration configuration,
+        IRabbitMqConnectionSettingsProvider settingsProvider,
         ILogger<RabbitMqManagementQueueDiscovery> logger
     )
     {
         _httpClient = httpClient;
-        _configuration = configuration;
+        _settingsProvider = settingsProvider;
         _logger = logger;
     }
 
@@ -28,7 +28,11 @@ public class RabbitMqManagementQueueDiscovery : IQueueDiscoveryService
         CancellationToken cancellationToken
     )
     {
-        var settings = RabbitMqConnectionSettings.FromConfiguration(_configuration);
+        var settings = await _settingsProvider.GetSettingsAsync(cancellationToken);
+        if (settings is null)
+        {
+            throw new InvalidOperationException("RabbitMQ connection has not been configured.");
+        }
         var baseUrl =
             settings.ManagementBaseUrl
             ?? throw new InvalidOperationException(

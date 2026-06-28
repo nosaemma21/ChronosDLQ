@@ -6,15 +6,15 @@ namespace ChronosDLQ.App.Health;
 
 public class RabbitMqManagementHealthCheck : IHealthCheck
 {
-    private readonly IConfiguration _configuration;
+    private readonly IRabbitMqConnectionSettingsProvider _settingsProvider;
     private readonly IHttpClientFactory _httpClientFactory;
 
     public RabbitMqManagementHealthCheck(
-        IConfiguration configuration,
+        IRabbitMqConnectionSettingsProvider settingsProvider,
         IHttpClientFactory httpClientFactory
     )
     {
-        _configuration = configuration;
+        _settingsProvider = settingsProvider;
         _httpClientFactory = httpClientFactory;
     }
 
@@ -23,7 +23,11 @@ public class RabbitMqManagementHealthCheck : IHealthCheck
         CancellationToken cancellationToken = default
     )
     {
-        var settings = RabbitMqConnectionSettings.FromConfiguration(_configuration);
+        var settings = await _settingsProvider.GetSettingsAsync(cancellationToken);
+        if (settings is null)
+        {
+            return HealthCheckResult.Unhealthy("RabbitMQ connection has not been configured.");
+        }
         var baseUrl = settings.ManagementBaseUrl;
         if (string.IsNullOrWhiteSpace(baseUrl))
         {

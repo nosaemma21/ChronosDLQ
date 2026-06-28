@@ -9,19 +9,19 @@ namespace ChronosDLQ.App.Services;
 class RabbitMqConsumer : IMessageBrokerConsumer
 {
     private readonly IMessageIndexStore _indexStore;
-    private readonly IConfiguration _configuration;
+    private readonly IRabbitMqConnectionSettingsProvider _settingsProvider;
     private readonly ILogger<RabbitMqConsumer> _logger;
     private readonly ConcurrentDictionary<string, QueueConsumerHandle> _activeConsumers = new();
     private readonly SemaphoreSlim _consumerLock = new(1, 1);
 
     public RabbitMqConsumer(
         IMessageIndexStore indexStore,
-        IConfiguration configuration,
+        IRabbitMqConnectionSettingsProvider settingsProvider,
         ILogger<RabbitMqConsumer> logger
     )
     {
         _indexStore = indexStore;
-        _configuration = configuration;
+        _settingsProvider = settingsProvider;
         _logger = logger;
     }
 
@@ -40,9 +40,13 @@ class RabbitMqConsumer : IMessageBrokerConsumer
                 "Connecting to RabbitMQ broker for queue {QueueName}...",
                 queueName
             );
-            var factory = RabbitMqConnectionSettings
-                .FromConfiguration(_configuration)
-                .CreateConnectionFactory(automaticRecoveryEnabled: true);
+            var settings = await _settingsProvider.GetSettingsAsync(cancellationToken);
+            if (settings is null)
+            {
+                throw new InvalidOperationException("RabbitMQ connection has not been configured.");
+            }
+
+            var factory = settings.CreateConnectionFactory(automaticRecoveryEnabled: true);
 
             // Opening the persistent TCP socket
             var connection = await factory.CreateConnectionAsync(cancellationToken);

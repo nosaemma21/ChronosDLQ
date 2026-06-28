@@ -6,17 +6,17 @@ namespace ChronosDLQ.App.Services;
 public class MessageReplayService : IMessageReplayService
 {
     private readonly IMessageIndexStore _indexStore;
-    private readonly IConfiguration _configuration;
+    private readonly IRabbitMqConnectionSettingsProvider _settingsProvider;
     private readonly ILogger<MessageReplayService> _logger;
 
     public MessageReplayService(
         IMessageIndexStore indexStore,
-        IConfiguration configuration,
+        IRabbitMqConnectionSettingsProvider settingsProvider,
         ILogger<MessageReplayService> logger
     )
     {
         _indexStore = indexStore;
-        _configuration = configuration;
+        _settingsProvider = settingsProvider;
         _logger = logger;
     }
 
@@ -40,9 +40,13 @@ public class MessageReplayService : IMessageReplayService
         try
         {
             // open a temp channel to send corrected payload back to queue
-            var factory = RabbitMqConnectionSettings
-                .FromConfiguration(_configuration)
-                .CreateConnectionFactory();
+            var settings = await _settingsProvider.GetSettingsAsync();
+            if (settings is null)
+            {
+                throw new InvalidOperationException("RabbitMQ connection has not been configured.");
+            }
+
+            var factory = settings.CreateConnectionFactory();
             using var connection = await factory.CreateConnectionAsync();
             using var channel = await connection.CreateChannelAsync();
 

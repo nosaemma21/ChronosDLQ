@@ -4,7 +4,7 @@ import { MessageStream } from "./components/MessageStream";
 import { MessageWorkspace } from "./components/MessageWorkspace";
 import { useDeadLetterMessages } from "./hooks/useDeadLetterMessages";
 import { api } from "./services/api";
-import { type RabbitMqQueueInfo } from "./types";
+import { type RabbitMqConfiguration, type RabbitMqQueueInfo } from "./types";
 import { showPixelToast } from "./utils/alerts";
 
 const WATCHED_QUEUE_STORAGE_KEY = "chronosdlq:watchedQueues";
@@ -36,6 +36,10 @@ export default function App() {
   const [queueDraft, setQueueDraft] = useState("");
   const [queueError, setQueueError] = useState<string | null>(null);
   const [isQueueActionPending, setIsQueueActionPending] = useState(false);
+  const [rabbitMqConfiguration, setRabbitMqConfiguration] =
+    useState<RabbitMqConfiguration | null>(null);
+  const [connectionUrlDraft, setConnectionUrlDraft] = useState("");
+  const [isConnectionPending, setIsConnectionPending] = useState(false);
 
   const {
     messages,
@@ -51,6 +55,16 @@ export default function App() {
 
   const loadQueues = useCallback(async () => {
     try {
+      const configuration = await api.getRabbitMqConfiguration();
+      setRabbitMqConfiguration(configuration);
+
+      if (!configuration.isConfigured) {
+        setAvailableQueues([]);
+        setWatchedQueues([]);
+        setQueueError(null);
+        return;
+      }
+
       const [queues, brokerWatchedQueues] = await Promise.all([
         api.getQueues(),
         api.getWatchedQueues(),
@@ -115,6 +129,32 @@ export default function App() {
     }
   };
 
+  const handleSaveConnection = async () => {
+    const connectionUrl = connectionUrlDraft.trim();
+    if (!connectionUrl) return;
+
+    setIsConnectionPending(true);
+    try {
+      const configuration = await api.saveRabbitMqConfiguration({
+        connectionUrl,
+      });
+      setRabbitMqConfiguration(configuration);
+      setConnectionUrlDraft("");
+      await loadQueues();
+      void showPixelToast({
+        icon: "success",
+        title: "Broker Linked",
+        text: "RabbitMQ connection saved.",
+      });
+    } catch (err: unknown) {
+      setQueueError(
+        err instanceof Error ? err.message : "Failed to save RabbitMQ URL.",
+      );
+    } finally {
+      setIsConnectionPending(false);
+    }
+  };
+
   const handleUnwatchQueue = async (queueName: string) => {
     setIsQueueActionPending(true);
     try {
@@ -162,12 +202,17 @@ export default function App() {
           selectedMessageId={selectedMessage?.messageId}
           isLoading={isLoading}
           error={error ?? queueError}
+          rabbitMqConfiguration={rabbitMqConfiguration}
+          connectionUrlDraft={connectionUrlDraft}
+          isConnectionPending={isConnectionPending}
           availableQueues={availableQueues}
           watchedQueues={watchedQueues}
           hasWatchedQueues={watchedQueues.length > 0}
           queueDraft={queueDraft}
           isQueueActionPending={isQueueActionPending}
           onQueueDraftChange={setQueueDraft}
+          onConnectionUrlDraftChange={setConnectionUrlDraft}
+          onSaveConnection={handleSaveConnection}
           onWatchQueue={handleWatchQueue}
           onUnwatchQueue={handleUnwatchQueue}
           onSelectMessage={selectMessage}

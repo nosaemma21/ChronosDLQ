@@ -75,6 +75,10 @@ builder.Services.AddSwaggerGen();
 
 // builder.Services.AddSingleton<IMessageIndexStore, MessageIndexStore>();
 builder.Services.AddSingleton<IMessageIndexStore, PostgresMessageIndexStore>();
+builder.Services.AddSingleton<
+    IRabbitMqConnectionSettingsProvider,
+    RabbitMqConnectionSettingsProvider
+>();
 
 // Registering RabbitMQ low level core consumer engine
 builder.Services.AddSingleton<IMessageBrokerConsumer, RabbitMqConsumer>();
@@ -88,37 +92,6 @@ var app = builder.Build();
 
 var chronosApiKey = builder.Configuration["Chronos:ApiKey"];
 var chronosOpertorKey = builder.Configuration["Chronos:OperatorKey"];
-
-var rabbitMqSettings = RabbitMqConnectionSettings.FromConfiguration(builder.Configuration);
-var rabbitMqUserName = rabbitMqSettings.UserName;
-var rabbitMqPassword = rabbitMqSettings.Password;
-var rabbitMqManagementBaseUrl = rabbitMqSettings.ManagementBaseUrl;
-
-if (!app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(rabbitMqManagementBaseUrl))
-{
-    throw new InvalidOperationException(
-        "RabbitMQ Management API base URL must be configured outside Development."
-    );
-}
-
-// ------------ MANAGER AUTH SECURITY -----------
-if (!app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(rabbitMqUserName))
-{
-    throw new InvalidOperationException("RabbitMQ username must be configured outside Dev env.");
-}
-
-if (!app.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(rabbitMqPassword))
-{
-    throw new InvalidOperationException("RabbitMQ password must be configured outside Dev env.");
-}
-
-if (
-    !app.Environment.IsDevelopment()
-    && string.Equals(rabbitMqUserName, "guest", StringComparison.Ordinal)
-)
-{
-    throw new InvalidOperationException("No RabbitMQ guest user outside dev env");
-}
 
 //---------- API AUTH --------------
 // will throw when non-dev env has no key ❌
@@ -176,7 +149,12 @@ app.Use(
             cxt.Request.Method == HttpMethods.Delete
             && cxt.Request.Path.StartsWithSegments("/api/messages");
 
-        var requiresOperatorPermission = isReplayRequest || isDiscardRequest;
+        var isRabbitMqConfigurationWrite =
+            cxt.Request.Method == HttpMethods.Put
+            && cxt.Request.Path.StartsWithSegments("/api/rabbitmq/configuration");
+
+        var requiresOperatorPermission =
+            isReplayRequest || isDiscardRequest || isRabbitMqConfigurationWrite;
 
         if (requiresOperatorPermission)
         {

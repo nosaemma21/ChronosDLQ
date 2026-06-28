@@ -31,6 +31,19 @@ public sealed class RabbitMqConnectionSettings
     public string VirtualHost { get; }
     public string? ManagementBaseUrl { get; }
 
+    public static bool HasConnectionUrlConfiguration(IConfiguration configuration)
+    {
+        return !string.IsNullOrWhiteSpace(configuration["RabbitMq:ConnectionUrl"])
+            || !string.IsNullOrWhiteSpace(configuration["RabbitMq:Url"])
+            || !string.IsNullOrWhiteSpace(configuration["RabbitMq:Uri"]);
+    }
+
+    public static bool HasConfiguration(IConfiguration configuration)
+    {
+        return HasConnectionUrlConfiguration(configuration)
+            || !string.IsNullOrWhiteSpace(configuration["RabbitMq:HostName"]);
+    }
+
     public static RabbitMqConnectionSettings FromConfiguration(IConfiguration configuration)
     {
         var connectionUrl =
@@ -78,7 +91,7 @@ public sealed class RabbitMqConnectionSettings
         return factory;
     }
 
-    private static RabbitMqConnectionSettings FromConnectionUrl(
+    public static RabbitMqConnectionSettings FromConnectionUrl(
         string connectionUrl,
         string? configuredManagementBaseUrl
     )

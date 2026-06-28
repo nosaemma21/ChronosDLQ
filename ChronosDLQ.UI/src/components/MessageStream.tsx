@@ -1,6 +1,10 @@
 import { useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { type DeadLetterMessage, type RabbitMqQueueInfo } from "../types";
+import {
+  type DeadLetterMessage,
+  type RabbitMqConfiguration,
+  type RabbitMqQueueInfo,
+} from "../types";
 import { MessageCard } from "./MessageCard";
 
 interface MessageStreamProps {
@@ -8,11 +12,16 @@ interface MessageStreamProps {
   selectedMessageId?: string;
   isLoading: boolean;
   error: string | null;
+  rabbitMqConfiguration: RabbitMqConfiguration | null;
+  connectionUrlDraft: string;
+  isConnectionPending: boolean;
   availableQueues: RabbitMqQueueInfo[];
   watchedQueues: string[];
   hasWatchedQueues: boolean;
   queueDraft: string;
   isQueueActionPending: boolean;
+  onConnectionUrlDraftChange: (connectionUrl: string) => void;
+  onSaveConnection: () => void;
   onQueueDraftChange: (queueName: string) => void;
   onWatchQueue: () => void;
   onUnwatchQueue: (queueName: string) => void;
@@ -24,11 +33,16 @@ export function MessageStream({
   selectedMessageId,
   isLoading,
   error,
+  rabbitMqConfiguration,
+  connectionUrlDraft,
+  isConnectionPending,
   availableQueues,
   watchedQueues,
   hasWatchedQueues,
   queueDraft,
   isQueueActionPending,
+  onConnectionUrlDraftChange,
+  onSaveConnection,
   onQueueDraftChange,
   onWatchQueue,
   onUnwatchQueue,
@@ -38,6 +52,7 @@ export function MessageStream({
   const dlqQueues = availableQueues.filter((queue) =>
     queue.name.endsWith(".dlq"),
   );
+  const isBrokerConfigured = rabbitMqConfiguration?.isConfigured ?? false;
   const virtualizer = useVirtualizer({
     count: messages.length,
     getScrollElement: () => streamParentRef.current,
@@ -47,6 +62,51 @@ export function MessageStream({
 
   return (
     <section className="col-span-4 flex min-h-0 flex-col gap-3 overflow-hidden">
+      <div className="pixel-panel shrink-0 space-y-3 p-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="pixel-title text-xl font-bold text-[#f6f1dc] uppercase">
+            RabbitMQ Link
+          </div>
+          <span
+            className={`border-2 px-2 py-1 font-mono text-[10px] font-bold uppercase ${
+              isBrokerConfigured
+                ? "border-[#315f29] bg-[#10210d] text-[#79d957]"
+                : "border-[#704f1d] bg-[#2b1f12] text-[#ffcf5c]"
+            }`}
+          >
+            {isBrokerConfigured ? "Connected" : "Unlinked"}
+          </span>
+        </div>
+
+        <div className="flex gap-2">
+          <input
+            value={connectionUrlDraft}
+            onChange={(event) =>
+              onConnectionUrlDraftChange(event.target.value)
+            }
+            placeholder="amqps://user:pass@host/vhost"
+            className="min-w-0 flex-1 border-2 border-[#52718e] bg-[#09121e] px-3 py-2 font-mono text-sm text-[#f6f1dc] shadow-[inset_0_0_0_2px_#020617] outline-none focus:border-[#6af052]"
+          />
+          <button
+            type="button"
+            onClick={onSaveConnection}
+            disabled={isConnectionPending || !connectionUrlDraft.trim()}
+            className="pixel-button flex min-w-24 items-center justify-center gap-2 bg-[#79d957] px-2.5 py-1.5 font-pixel text-sm font-medium text-[#10210d] uppercase transition hover:bg-[#9cff78] disabled:bg-[#263849] disabled:text-[#6d8fb0]"
+          >
+            {isConnectionPending ? "Linking..." : "Link"}
+          </button>
+        </div>
+
+        {isBrokerConfigured ? (
+          <div className="truncate font-mono text-xs text-[#8fb4dc]">
+            {rabbitMqConfiguration?.hostName}
+            {rabbitMqConfiguration?.virtualHost
+              ? ` / ${rabbitMqConfiguration.virtualHost}`
+              : ""}
+          </div>
+        ) : null}
+      </div>
+
       <div className="pixel-panel shrink-0 space-y-3 p-3">
         <div className="pixel-title text-xl font-bold text-[#f6f1dc] uppercase">
           Queue Watchlist
@@ -70,7 +130,9 @@ export function MessageStream({
           <button
             type="button"
             onClick={onWatchQueue}
-            disabled={isQueueActionPending || !queueDraft.trim()}
+            disabled={
+              !isBrokerConfigured || isQueueActionPending || !queueDraft.trim()
+            }
             className="pixel-button flex min-w-20 items-center justify-center gap-2 bg-[#79d957] px-2.5 py-1.5 font-pixel text-sm font-medium text-[#10210d] uppercase transition hover:bg-[#9cff78] disabled:bg-[#263849] disabled:text-[#6d8fb0]"
           >
             {isQueueActionPending ? (
@@ -128,7 +190,11 @@ export function MessageStream({
         ref={streamParentRef}
         className="pixel-panel min-h-0 flex-1 overflow-y-auto p-3"
       >
-        {!hasWatchedQueues ? (
+        {!isBrokerConfigured ? (
+          <div className="border-2 border-dashed border-[#263e56] p-8 text-center font-mono text-xs text-[#6d8fb0]">
+            Link RabbitMQ to start streaming traces.
+          </div>
+        ) : !hasWatchedQueues ? (
           <div className="border-2 border-dashed border-[#263e56] p-8 text-center font-mono text-xs text-[#6d8fb0]">
             Select a queue and press Watch to start streaming traces.
           </div>

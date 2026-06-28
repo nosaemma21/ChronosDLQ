@@ -6,11 +6,11 @@ namespace ChronosDLQ.app.Health;
 
 public class RabbitMqAmqHealthCheck : IHealthCheck
 {
-    private readonly IConfiguration _configuration;
+    private readonly IRabbitMqConnectionSettingsProvider _settingsProvider;
 
-    public RabbitMqAmqHealthCheck(IConfiguration configuration)
+    public RabbitMqAmqHealthCheck(IRabbitMqConnectionSettingsProvider settingsProvider)
     {
-        _configuration = configuration;
+        _settingsProvider = settingsProvider;
     }
 
     public async Task<HealthCheckResult> CheckHealthAsync(
@@ -20,9 +20,13 @@ public class RabbitMqAmqHealthCheck : IHealthCheck
     {
         try
         {
-            var factory = RabbitMqConnectionSettings
-                .FromConfiguration(_configuration)
-                .CreateConnectionFactory();
+            var settings = await _settingsProvider.GetSettingsAsync(cancellationToken);
+            if (settings is null)
+            {
+                return HealthCheckResult.Unhealthy("RabbitMQ connection has not been configured.");
+            }
+
+            var factory = settings.CreateConnectionFactory();
 
             using var connection = await factory.CreateConnectionAsync(cancellationToken);
 

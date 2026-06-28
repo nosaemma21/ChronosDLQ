@@ -20,6 +20,19 @@ export interface RabbitMqQueueInfo {
   state: string;
 }
 
+export interface RabbitMqConfiguration {
+  isConfigured: boolean;
+  hostName?: string;
+  virtualHost?: string;
+  managementBaseUrl?: string;
+  updatedAtUtc?: string;
+}
+
+export interface RabbitMqConfigurationRequest {
+  connectionUrl: string;
+  managementBaseUrl?: string;
+}
+
 export type JsonValue =
   | string
   | number

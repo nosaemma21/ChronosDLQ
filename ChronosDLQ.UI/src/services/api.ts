@@ -1,6 +1,8 @@
 import {
   type DeadLetterMessage,
   type JsonPatchOperation,
+  type RabbitMqConfiguration,
+  type RabbitMqConfigurationRequest,
   type RabbitMqQueueInfo,
   type ReplayRequest,
 } from "../types";
@@ -28,6 +30,27 @@ const chronosOperatorHeaders = (extraHeaders?: HeadersInit): HeadersInit => {
 };
 
 export const api = {
+  async getRabbitMqConfiguration(): Promise<RabbitMqConfiguration> {
+    const response = await fetch(`${BASE_URL}/rabbitmq/configuration`, {
+      headers: chronosHeaders(),
+    });
+    if (!response.ok)
+      throw new Error("Failed to load RabbitMQ connection state.");
+    return response.json();
+  },
+
+  async saveRabbitMqConfiguration(
+    request: RabbitMqConfigurationRequest,
+  ): Promise<RabbitMqConfiguration> {
+    const response = await fetch(`${BASE_URL}/rabbitmq/configuration`, {
+      method: "PUT",
+      headers: chronosOperatorHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(request),
+    });
+    if (!response.ok) throw new Error("Failed to save RabbitMQ connection.");
+    return response.json();
+  },
+
   async getMessages(): Promise<DeadLetterMessage[]> {
     const response = await fetch(`${BASE_URL}/messages`, {
       headers: chronosHeaders(),
