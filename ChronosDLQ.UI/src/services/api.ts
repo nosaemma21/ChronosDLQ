@@ -5,7 +5,8 @@ import {
   type ReplayRequest,
 } from "../types";
 
-const BASE_URL = "http://localhost:5103/api";
+const BASE_URL =
+  import.meta.env.VITE_CHRONOS_API_BASE_URL ?? "http://localhost:5103/api";
 const API_KEY = import.meta.env.VITE_CHRONOS_API_KEY ?? "some_api_key";
 const OPERATOR_KEY =
   import.meta.env.VITE_CHRONOS_OPERATOR_KEY ?? "some_chronos_operator_key";

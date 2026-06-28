@@ -1,0 +1,65 @@
+services:
+  - type: web
+    name: chronosdlq-api
+    runtime: docker
+    plan: free
+    branch: main
+    autoDeploy: true
+    dockerfilePath: ./ChronosDLQ.App/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ASPNETCORE_URLS
+        value: http://+:10000
+      - key: ConnectionStrings__ChronosDb
+        fromDatabase:
+          name: chronosdlq-db
+          property: connectionString
+      - key: Cors__AllowedOrigins__0
+        value: https://chronosdlq-ui.onrender.com
+      - key: Chronos__ApiKey
+        sync: false
+      - key: Chronos__OperatorKey
+        sync: false
+      - key: RabbitMq__HostName
+        sync: false
+      - key: RabbitMq__ManagementBaseUrl
+        sync: false
+      - key: RabbitMq__UserName
+        sync: false
+      - key: RabbitMq__Password
+        sync: false
+      - key: RabbitMq__VirtualHost
+        value: /
+
+  - type: web
+    name: chronosdlq-ui
+    runtime: static
+    plan: free
+    branch: main
+    autoDeploy: true
+    buildCommand: cd ChronosDLQ.UI && npm ci && npm run build
+    staticPublishPath: ChronosDLQ.UI/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_CHRONOS_API_BASE_URL
+        value: https://chronosdlq-api.onrender.com/api
+      - key: VITE_CHRONOS_API_KEY
+        sync: false
+      - key: VITE_CHRONOS_OPERATOR_KEY
+        sync: false
+      - key: VITE_CHRONOS_ACTOR
+        value: render-operator
+
+databases:
+  - name: chronosdlq-db
+    databaseName: chronos_dlq
+    user: chronos
+    plan: free
+    postgresMajorVersion: "16"
+    ipAllowList: []
