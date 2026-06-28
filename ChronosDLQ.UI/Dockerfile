@@ -1,7 +1,7 @@
 FROM node:24-alpine AS build
 WORKDIR /app
 
-COPY ChronosDLQ.UI/packages.json ./
+COPY ChronosDLQ.UI/package.json ./
 RUN npm ci
 
 COPY ChronosDLQ.UI/ ./
