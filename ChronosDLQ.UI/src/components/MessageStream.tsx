@@ -1,3 +1,5 @@
+import { useRef } from "react";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { type DeadLetterMessage, type RabbitMqQueueInfo } from "../types";
 import { MessageCard } from "./MessageCard";
 
@@ -32,9 +34,16 @@ export function MessageStream({
   onUnwatchQueue,
   onSelectMessage,
 }: MessageStreamProps) {
+  const streamParentRef = useRef<HTMLDivElement | null>(null);
   const dlqQueues = availableQueues.filter((queue) =>
     queue.name.endsWith(".dlq"),
   );
+  const virtualizer = useVirtualizer({
+    count: messages.length,
+    getScrollElement: () => streamParentRef.current,
+    estimateSize: () => 104,
+    overscan: 6,
+  });
 
   return (
     <section className="col-span-4 flex min-h-0 flex-col gap-3 overflow-hidden">
@@ -115,7 +124,10 @@ export function MessageStream({
         Active Poison Stream ({messages.length})
       </div>
 
-      <div className="pixel-panel min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
+      <div
+        ref={streamParentRef}
+        className="pixel-panel min-h-0 flex-1 overflow-y-auto p-3"
+      >
         {!hasWatchedQueues ? (
           <div className="border-2 border-dashed border-[#263e56] p-8 text-center font-mono text-xs text-[#6d8fb0]">
             Select a queue and press Watch to start streaming traces.
@@ -133,14 +145,32 @@ export function MessageStream({
             Watched queues are clear.
           </div>
         ) : (
-          messages.map((message) => (
-            <MessageCard
-              key={message.messageId}
-              message={message}
-              isSelected={selectedMessageId === message.messageId}
-              onSelect={onSelectMessage}
-            />
-          ))
+          <div
+            className="relative"
+            style={{ height: `${virtualizer.getTotalSize()}px` }}
+          >
+            {virtualizer.getVirtualItems().map((virtualRow) => {
+              const message = messages[virtualRow.index];
+
+              return (
+                <div
+                  key={message.messageId}
+                  ref={virtualizer.measureElement}
+                  data-index={virtualRow.index}
+                  className="absolute top-0 left-0 w-full pb-3"
+                  style={{
+                    transform: `translateY(${virtualRow.start}px)`,
+                  }}
+                >
+                  <MessageCard
+                    message={message}
+                    isSelected={selectedMessageId === message.messageId}
+                    onSelect={onSelectMessage}
+                  />
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
     </section>
