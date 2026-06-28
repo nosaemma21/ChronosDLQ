@@ -72,6 +72,7 @@ builder
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpContextAccessor();
 
 // builder.Services.AddSingleton<IMessageIndexStore, MessageIndexStore>();
 builder.Services.AddSingleton<IMessageIndexStore, PostgresMessageIndexStore>();
@@ -149,12 +150,7 @@ app.Use(
             cxt.Request.Method == HttpMethods.Delete
             && cxt.Request.Path.StartsWithSegments("/api/messages");
 
-        var isRabbitMqConfigurationWrite =
-            cxt.Request.Method == HttpMethods.Put
-            && cxt.Request.Path.StartsWithSegments("/api/rabbitmq/configuration");
-
-        var requiresOperatorPermission =
-            isReplayRequest || isDiscardRequest || isRabbitMqConfigurationWrite;
+        var requiresOperatorPermission = isReplayRequest || isDiscardRequest;
 
         if (requiresOperatorPermission)
         {

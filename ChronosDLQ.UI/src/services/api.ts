@@ -1,12 +1,11 @@
 import {
   type DeadLetterMessage,
   type JsonPatchOperation,
-  type RabbitMqConfiguration,
-  type RabbitMqConfigurationRequest,
   type RabbitMqQueueInfo,
   type ReplayRequest,
 } from "../types";
 
+const RABBITMQ_URL_STORAGE_KEY = "chronosdlq:rabbitmqUrl";
 const BASE_URL =
   import.meta.env.VITE_CHRONOS_API_BASE_URL ?? "http://localhost:5103/api";
 const API_KEY = import.meta.env.VITE_CHRONOS_API_KEY ?? "some_api_key";
@@ -15,8 +14,11 @@ const OPERATOR_KEY =
 const ACTOR = import.meta.env.VITE_CHRONOS_ACTOR ?? "local-operator";
 
 const chronosHeaders = (extraHeaders?: HeadersInit): HeadersInit => {
+  const rabbitMqUrl = localStorage.getItem(RABBITMQ_URL_STORAGE_KEY);
+
   return {
     "X-CHRONOS-API-KEY": API_KEY,
+    ...(rabbitMqUrl ? { "X-CHRONOS-RABBITMQ-URL": rabbitMqUrl } : {}),
     ...extraHeaders,
   };
 };
@@ -30,27 +32,6 @@ const chronosOperatorHeaders = (extraHeaders?: HeadersInit): HeadersInit => {
 };
 
 export const api = {
-  async getRabbitMqConfiguration(): Promise<RabbitMqConfiguration> {
-    const response = await fetch(`${BASE_URL}/rabbitmq/configuration`, {
-      headers: chronosHeaders(),
-    });
-    if (!response.ok)
-      throw new Error("Failed to load RabbitMQ connection state.");
-    return response.json();
-  },
-
-  async saveRabbitMqConfiguration(
-    request: RabbitMqConfigurationRequest,
-  ): Promise<RabbitMqConfiguration> {
-    const response = await fetch(`${BASE_URL}/rabbitmq/configuration`, {
-      method: "PUT",
-      headers: chronosOperatorHeaders({ "Content-Type": "application/json" }),
-      body: JSON.stringify(request),
-    });
-    if (!response.ok) throw new Error("Failed to save RabbitMQ connection.");
-    return response.json();
-  },
-
   async getMessages(): Promise<DeadLetterMessage[]> {
     const response = await fetch(`${BASE_URL}/messages`, {
       headers: chronosHeaders(),

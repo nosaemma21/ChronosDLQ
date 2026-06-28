@@ -4,10 +4,11 @@ import { MessageStream } from "./components/MessageStream";
 import { MessageWorkspace } from "./components/MessageWorkspace";
 import { useDeadLetterMessages } from "./hooks/useDeadLetterMessages";
 import { api } from "./services/api";
-import { type RabbitMqConfiguration, type RabbitMqQueueInfo } from "./types";
+import { type RabbitMqQueueInfo } from "./types";
 import { showPixelToast } from "./utils/alerts";
 
 const WATCHED_QUEUE_STORAGE_KEY = "chronosdlq:watchedQueues";
+const RABBITMQ_URL_STORAGE_KEY = "chronosdlq:rabbitmqUrl";
 
 function readStoredWatchedQueues(): string[] {
   try {
@@ -36,11 +37,12 @@ export default function App() {
   const [queueDraft, setQueueDraft] = useState("");
   const [queueError, setQueueError] = useState<string | null>(null);
   const [isQueueActionPending, setIsQueueActionPending] = useState(false);
-  const [rabbitMqConfiguration, setRabbitMqConfiguration] =
-    useState<RabbitMqConfiguration | null>(null);
-  const [connectionUrlDraft, setConnectionUrlDraft] = useState("");
+  const [rabbitMqUrl, setRabbitMqUrl] = useState(
+    () => localStorage.getItem(RABBITMQ_URL_STORAGE_KEY) ?? "",
+  );
+  const [connectionUrlDraft, setConnectionUrlDraft] = useState(rabbitMqUrl);
   const [isConnectionPending, setIsConnectionPending] = useState(false);
-  const isBrokerConfigured = rabbitMqConfiguration?.isConfigured ?? false;
+  const isBrokerConfigured = rabbitMqUrl.trim().length > 0;
 
   const {
     messages,
@@ -57,17 +59,14 @@ export default function App() {
     error ?? queueError ? "error" : isBrokerConfigured ? "online" : "setup";
 
   const loadQueues = useCallback(async () => {
+    if (!localStorage.getItem(RABBITMQ_URL_STORAGE_KEY)) {
+      setAvailableQueues([]);
+      setWatchedQueues([]);
+      setQueueError(null);
+      return;
+    }
+
     try {
-      const configuration = await api.getRabbitMqConfiguration();
-      setRabbitMqConfiguration(configuration);
-
-      if (!configuration.isConfigured) {
-        setAvailableQueues([]);
-        setWatchedQueues([]);
-        setQueueError(null);
-        return;
-      }
-
       const [queues, brokerWatchedQueues] = await Promise.all([
         api.getQueues(),
         api.getWatchedQueues(),
@@ -138,11 +137,8 @@ export default function App() {
 
     setIsConnectionPending(true);
     try {
-      const configuration = await api.saveRabbitMqConfiguration({
-        connectionUrl,
-      });
-      setRabbitMqConfiguration(configuration);
-      setConnectionUrlDraft("");
+      localStorage.setItem(RABBITMQ_URL_STORAGE_KEY, connectionUrl);
+      setRabbitMqUrl(connectionUrl);
       await loadQueues();
       void showPixelToast({
         icon: "success",
@@ -205,7 +201,7 @@ export default function App() {
           selectedMessageId={selectedMessage?.messageId}
           isLoading={isLoading}
           error={error ?? queueError}
-          rabbitMqConfiguration={rabbitMqConfiguration}
+          rabbitMqUrl={rabbitMqUrl}
           connectionUrlDraft={connectionUrlDraft}
           isConnectionPending={isConnectionPending}
           availableQueues={availableQueues}

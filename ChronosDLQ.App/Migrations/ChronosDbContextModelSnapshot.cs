@@ -85,29 +85,6 @@ namespace ChronosDLQ.App.Migrations
 
                     b.ToTable("DeadLetterMessages");
                 });
-
-            modelBuilder.Entity("ChronosDLQ.App.Models.RabbitMqRuntimeConfiguration", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ConnectionUrl")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ManagementBaseUrl")
-                        .HasColumnType("text");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("RabbitMqRuntimeConfigurations");
-                });
 #pragma warning restore 612, 618
         }
     }

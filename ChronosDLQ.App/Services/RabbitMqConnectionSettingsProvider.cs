@@ -1,91 +1,47 @@
-using ChronosDLQ.App.Data;
-using ChronosDLQ.App.Models;
-using Microsoft.EntityFrameworkCore;
-
 namespace ChronosDLQ.App.Services;
 
 public class RabbitMqConnectionSettingsProvider : IRabbitMqConnectionSettingsProvider
 {
-    private const int RuntimeConfigurationId = 1;
+    private const string RabbitMqUrlHeader = "X-CHRONOS-RABBITMQ-URL";
+    private const string RabbitMqManagementUrlHeader = "X-CHRONOS-RABBITMQ-MANAGEMENT-URL";
 
-    private readonly IDbContextFactory<ChronosDbContext> _dbContextFactory;
     private readonly IConfiguration _configuration;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public RabbitMqConnectionSettingsProvider(
-        IDbContextFactory<ChronosDbContext> dbContextFactory,
-        IConfiguration configuration
+        IConfiguration configuration,
+        IHttpContextAccessor httpContextAccessor
     )
     {
-        _dbContextFactory = dbContextFactory;
         _configuration = configuration;
+        _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<RabbitMqConnectionSettings?> GetSettingsAsync(
+    public Task<RabbitMqConnectionSettings?> GetSettingsAsync(
         CancellationToken cancellationToken = default
     )
     {
-        if (RabbitMqConnectionSettings.HasConnectionUrlConfiguration(_configuration))
-        {
-            return RabbitMqConnectionSettings.FromConfiguration(_configuration);
-        }
+        var request = _httpContextAccessor.HttpContext?.Request;
+        var requestConnectionUrl = request?.Headers[RabbitMqUrlHeader].FirstOrDefault();
 
-        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(
-            cancellationToken
-        );
-        var runtimeConfiguration = await dbContext.RabbitMqRuntimeConfigurations.FindAsync(
-            [RuntimeConfigurationId],
-            cancellationToken
-        );
-
-        if (runtimeConfiguration is not null)
+        if (!string.IsNullOrWhiteSpace(requestConnectionUrl))
         {
-            return RabbitMqConnectionSettings.FromConnectionUrl(
-                runtimeConfiguration.ConnectionUrl,
-                runtimeConfiguration.ManagementBaseUrl
+            var requestManagementUrl = request
+                ?.Headers[RabbitMqManagementUrlHeader]
+                .FirstOrDefault();
+
+            return Task.FromResult<RabbitMqConnectionSettings?>(
+                RabbitMqConnectionSettings.FromConnectionUrl(
+                    requestConnectionUrl,
+                    requestManagementUrl
+                )
             );
         }
 
-        return RabbitMqConnectionSettings.HasConfiguration(_configuration)
+        var settings = RabbitMqConnectionSettings.HasConfiguration(_configuration)
             ? RabbitMqConnectionSettings.FromConfiguration(_configuration)
             : null;
-    }
 
-    public async Task<RabbitMqConnectionSettings> SaveAsync(
-        string connectionUrl,
-        string? managementBaseUrl,
-        CancellationToken cancellationToken = default
-    )
-    {
-        var settings = RabbitMqConnectionSettings.FromConnectionUrl(
-            connectionUrl,
-            managementBaseUrl
-        );
-
-        await using var dbContext = await _dbContextFactory.CreateDbContextAsync(
-            cancellationToken
-        );
-        var runtimeConfiguration = await dbContext.RabbitMqRuntimeConfigurations.FindAsync(
-            [RuntimeConfigurationId],
-            cancellationToken
-        );
-
-        if (runtimeConfiguration is null)
-        {
-            runtimeConfiguration = new RabbitMqRuntimeConfiguration
-            {
-                Id = RuntimeConfigurationId,
-            };
-            dbContext.RabbitMqRuntimeConfigurations.Add(runtimeConfiguration);
-        }
-
-        runtimeConfiguration.ConnectionUrl = connectionUrl.Trim();
-        runtimeConfiguration.ManagementBaseUrl = string.IsNullOrWhiteSpace(managementBaseUrl)
-            ? null
-            : managementBaseUrl.Trim();
-        runtimeConfiguration.UpdatedAtUtc = DateTime.UtcNow;
-
-        await dbContext.SaveChangesAsync(cancellationToken);
-
-        return settings;
+        return Task.FromResult(settings);
     }
 }

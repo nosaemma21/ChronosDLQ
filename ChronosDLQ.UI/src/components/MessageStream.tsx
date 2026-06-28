@@ -2,7 +2,6 @@ import { useRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   type DeadLetterMessage,
-  type RabbitMqConfiguration,
   type RabbitMqQueueInfo,
 } from "../types";
 import { MessageCard } from "./MessageCard";
@@ -12,7 +11,7 @@ interface MessageStreamProps {
   selectedMessageId?: string;
   isLoading: boolean;
   error: string | null;
-  rabbitMqConfiguration: RabbitMqConfiguration | null;
+  rabbitMqUrl: string;
   connectionUrlDraft: string;
   isConnectionPending: boolean;
   availableQueues: RabbitMqQueueInfo[];
@@ -33,7 +32,7 @@ export function MessageStream({
   selectedMessageId,
   isLoading,
   error,
-  rabbitMqConfiguration,
+  rabbitMqUrl,
   connectionUrlDraft,
   isConnectionPending,
   availableQueues,
@@ -52,7 +51,7 @@ export function MessageStream({
   const dlqQueues = availableQueues.filter((queue) =>
     queue.name.endsWith(".dlq"),
   );
-  const isBrokerConfigured = rabbitMqConfiguration?.isConfigured ?? false;
+  const isBrokerConfigured = rabbitMqUrl.trim().length > 0;
   const virtualizer = useVirtualizer({
     count: messages.length,
     getScrollElement: () => streamParentRef.current,
@@ -99,10 +98,7 @@ export function MessageStream({
 
         {isBrokerConfigured ? (
           <div className="truncate font-mono text-xs text-[#8fb4dc]">
-            {rabbitMqConfiguration?.hostName}
-            {rabbitMqConfiguration?.virtualHost
-              ? ` / ${rabbitMqConfiguration.virtualHost}`
-              : ""}
+            {rabbitMqUrl.replace(/^amqps?:\/\//, "")}
           </div>
         ) : null}
 

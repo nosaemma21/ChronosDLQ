@@ -11,8 +11,6 @@ public class ChronosDbContext : DbContext
         : base(options) { }
 
     public DbSet<DeadLetterMessage> DeadLetterMessages => Set<DeadLetterMessage>();
-    public DbSet<RabbitMqRuntimeConfiguration> RabbitMqRuntimeConfigurations =>
-        Set<RabbitMqRuntimeConfiguration>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -71,12 +69,5 @@ public class ChronosDbContext : DbContext
             entity.HasIndex(message => message.Timestamp);
         });
 
-        modelBuilder.Entity<RabbitMqRuntimeConfiguration>(entity =>
-        {
-            entity.HasKey(configuration => configuration.Id);
-            entity.Property(configuration => configuration.ConnectionUrl).IsRequired();
-            entity.Property(configuration => configuration.ConnectionUrl).HasColumnType("text");
-            entity.Property(configuration => configuration.ManagementBaseUrl).HasColumnType("text");
-        });
     }
 }
