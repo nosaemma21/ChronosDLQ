@@ -22,6 +22,9 @@ public class MessagesApiTests : IClassFixture<WebApplicationFactory<Program>>
         // in-memory client to live api
         _client = factory.CreateClient();
 
+        // no authorization worked without headers present even for test
+        AddChronosTestHeaders(_client);
+
         //  single instance of store
         _store = factory.Services.GetRequiredService<IMessageIndexStore>();
 
@@ -133,6 +136,18 @@ public class MessagesApiTests : IClassFixture<WebApplicationFactory<Program>>
         var destinationQueue = "orders";
         var payloadModification = "{\"status\": \"replayed\"}";
 
+        // dummy for test
+        _store.AddOrUpdate(
+            new DeadLetterMessage
+            {
+                MessageId = targetId,
+                QueueName = "orders.dlq",
+                RawPayload = payloadModification,
+                ExceptionMessage = "test failure",
+                Timestamp = DateTime.UtcNow,
+            }
+        );
+
         var mockedReplayService = new Mock<IMessageReplayService>();
 
         //mock
@@ -156,6 +171,9 @@ public class MessagesApiTests : IClassFixture<WebApplicationFactory<Program>>
                 });
             })
             .CreateClient();
+
+        // needed the headers
+        AddChronosTestHeaders(isolatedClient);
 
         var requestBody = new
         {
@@ -208,6 +226,9 @@ public class MessagesApiTests : IClassFixture<WebApplicationFactory<Program>>
             })
             .CreateClient();
 
+        //needed the headers here also
+        AddChronosTestHeaders(isolatedClient);
+
         var requestBody = new
         {
             MessageId = missingId,
@@ -246,5 +267,12 @@ public class MessagesApiTests : IClassFixture<WebApplicationFactory<Program>>
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    private static void AddChronosTestHeaders(HttpClient client)
+    {
+        client.DefaultRequestHeaders.Add("X-CHRONOS-API-KEY", "some_api_key");
+        client.DefaultRequestHeaders.Add("X-CHRONOS-OPERATOR-KEY", "some_chronos_operator_key");
+        client.DefaultRequestHeaders.Add("X-CHRONOS-ACTOR", "test-operator");
     }
 }
