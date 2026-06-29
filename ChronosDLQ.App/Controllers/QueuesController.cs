@@ -23,8 +23,15 @@ public class QueuesController : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        var queues = await _queueDiscoveryService.GetQueuesAsync(cancellationToken);
-        return Ok(queues);
+        try
+        {
+            var queues = await _queueDiscoveryService.GetQueuesAsync(cancellationToken);
+            return Ok(queues);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpGet("watched")]
@@ -42,8 +49,15 @@ public class QueuesController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.QueueName))
             return BadRequest(new { message = "Queue name is required" });
 
-        await _queueWatchService.WatchQueueAsync(request.QueueName, cancellationToken);
-        return Ok(new { message = $"Chronos is now watching {request.QueueName}" });
+        try
+        {
+            await _queueWatchService.WatchQueueAsync(request.QueueName, cancellationToken);
+            return Ok(new { message = $"Chronos is now watching {request.QueueName}" });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     [HttpDelete("watched/{*queueName}")]

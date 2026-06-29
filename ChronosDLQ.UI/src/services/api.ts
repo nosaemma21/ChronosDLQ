@@ -13,8 +13,22 @@ const OPERATOR_KEY =
   import.meta.env.VITE_CHRONOS_OPERATOR_KEY ?? "some_chronos_operator_key";
 const ACTOR = import.meta.env.VITE_CHRONOS_ACTOR ?? "local-operator";
 
+export const rabbitMqUrlStore = {
+  get(): string {
+    return localStorage.getItem(RABBITMQ_URL_STORAGE_KEY) ?? "";
+  },
+
+  set(connectionUrl: string) {
+    localStorage.setItem(RABBITMQ_URL_STORAGE_KEY, connectionUrl);
+  },
+
+  clear() {
+    localStorage.removeItem(RABBITMQ_URL_STORAGE_KEY);
+  },
+};
+
 const chronosHeaders = (extraHeaders?: HeadersInit): HeadersInit => {
-  const rabbitMqUrl = localStorage.getItem(RABBITMQ_URL_STORAGE_KEY);
+  const rabbitMqUrl = rabbitMqUrlStore.get();
 
   return {
     "X-CHRONOS-API-KEY": API_KEY,

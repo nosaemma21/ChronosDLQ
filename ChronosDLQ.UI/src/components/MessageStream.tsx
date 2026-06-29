@@ -83,7 +83,7 @@ export function MessageStream({
             onChange={(event) =>
               onConnectionUrlDraftChange(event.target.value)
             }
-            placeholder="amqps://user:pass@host/vhost"
+            placeholder="amqp://localhost:5672"
             className="min-w-0 border-2 border-[#52718e] bg-[#09121e] px-3 py-2 font-mono text-xs text-[#f6f1dc] shadow-[inset_0_0_0_2px_#020617] outline-none focus:border-[#6af052]"
           />
           <button

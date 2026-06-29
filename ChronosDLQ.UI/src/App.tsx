@@ -3,12 +3,11 @@ import { AppHeader } from "./components/AppHeader";
 import { MessageStream } from "./components/MessageStream";
 import { MessageWorkspace } from "./components/MessageWorkspace";
 import { useDeadLetterMessages } from "./hooks/useDeadLetterMessages";
-import { api } from "./services/api";
+import { api, rabbitMqUrlStore } from "./services/api";
 import { type RabbitMqQueueInfo } from "./types";
 import { showPixelToast } from "./utils/alerts";
 
 const WATCHED_QUEUE_STORAGE_KEY = "chronosdlq:watchedQueues";
-const RABBITMQ_URL_STORAGE_KEY = "chronosdlq:rabbitmqUrl";
 
 function readStoredWatchedQueues(): string[] {
   try {
@@ -29,6 +28,23 @@ function storeWatchedQueues(queueNames: string[]) {
   localStorage.setItem(WATCHED_QUEUE_STORAGE_KEY, JSON.stringify(queueNames));
 }
 
+function isRabbitMqUrl(connectionUrl: string) {
+  try {
+    const parsedUrl = new URL(connectionUrl);
+    return parsedUrl.protocol === "amqp:" || parsedUrl.protocol === "amqps:";
+  } catch {
+    return false;
+  }
+}
+
+function readStoredRabbitMqUrl() {
+  const storedUrl = rabbitMqUrlStore.get();
+  if (!storedUrl || isRabbitMqUrl(storedUrl)) return storedUrl;
+
+  rabbitMqUrlStore.clear();
+  return "";
+}
+
 export default function App() {
   const [availableQueues, setAvailableQueues] = useState<RabbitMqQueueInfo[]>(
     [],
@@ -37,9 +53,7 @@ export default function App() {
   const [queueDraft, setQueueDraft] = useState("");
   const [queueError, setQueueError] = useState<string | null>(null);
   const [isQueueActionPending, setIsQueueActionPending] = useState(false);
-  const [rabbitMqUrl, setRabbitMqUrl] = useState(
-    () => localStorage.getItem(RABBITMQ_URL_STORAGE_KEY) ?? "",
-  );
+  const [rabbitMqUrl, setRabbitMqUrl] = useState(readStoredRabbitMqUrl);
   const [connectionUrlDraft, setConnectionUrlDraft] = useState(rabbitMqUrl);
   const [isConnectionPending, setIsConnectionPending] = useState(false);
   const isBrokerConfigured = rabbitMqUrl.trim().length > 0;
@@ -55,11 +69,10 @@ export default function App() {
     selectMessage,
     replaySelectedMessage,
   } = useDeadLetterMessages();
-  const appStatus =
-    error ?? queueError ? "error" : isBrokerConfigured ? "online" : "setup";
+  const appStatus = error ? "error" : isBrokerConfigured ? "online" : "setup";
 
   const loadQueues = useCallback(async () => {
-    if (!localStorage.getItem(RABBITMQ_URL_STORAGE_KEY)) {
+    if (!rabbitMqUrlStore.get()) {
       setAvailableQueues([]);
       setWatchedQueues([]);
       setQueueError(null);
@@ -137,17 +150,39 @@ export default function App() {
 
     setIsConnectionPending(true);
     try {
-      localStorage.setItem(RABBITMQ_URL_STORAGE_KEY, connectionUrl);
+      if (!isRabbitMqUrl(connectionUrl)) {
+        throw new Error("Use an AMQP URL, for example amqp://localhost:5672");
+      }
+
+      rabbitMqUrlStore.set(connectionUrl);
+      const queues = await api.getQueues();
+      const brokerWatchedQueues = await api.getWatchedQueues();
+
       setRabbitMqUrl(connectionUrl);
-      await loadQueues();
+      setAvailableQueues(queues);
+      setWatchedQueues(brokerWatchedQueues);
+      storeWatchedQueues(brokerWatchedQueues);
+      setQueueError(null);
+
+      setQueueDraft((currentQueueDraft) => {
+        if (currentQueueDraft || queues.length === 0) return currentQueueDraft;
+
+        const firstDlq = queues.find((queue) => queue.name.endsWith(".dlq"));
+        return firstDlq?.name ?? queues[0].name;
+      });
+
       void showPixelToast({
         icon: "success",
         title: "Broker Linked",
-        text: "RabbitMQ connection saved.",
+        text: "RabbitMQ connection verified.",
       });
     } catch (err: unknown) {
+      rabbitMqUrlStore.clear();
+      setRabbitMqUrl("");
+      setAvailableQueues([]);
+      setWatchedQueues([]);
       setQueueError(
-        err instanceof Error ? err.message : "Failed to save RabbitMQ URL.",
+        err instanceof Error ? err.message : "Failed to connect to RabbitMQ.",
       );
     } finally {
       setIsConnectionPending(false);
