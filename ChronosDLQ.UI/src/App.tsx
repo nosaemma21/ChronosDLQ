@@ -127,6 +127,16 @@ export default function App() {
     return messages.filter((message) => watchedQueueSet.has(message.queueName));
   }, [messages, watchedQueues]);
 
+  const visibleSelectedMessage = useMemo(() => {
+    if (!selectedMessage) return null;
+
+    return (
+      visibleMessages.find(
+        (message) => message.messageId === selectedMessage.messageId,
+      ) ?? null
+    );
+  }, [selectedMessage, visibleMessages]);
+
   const handleWatchQueue = async () => {
     const queueName = queueDraft.trim();
     if (!queueName) return;
@@ -233,7 +243,7 @@ export default function App() {
       <main className="mt-3 grid min-h-0 flex-1 grid-cols-12 gap-3 overflow-hidden">
         <MessageStream
           messages={visibleMessages}
-          selectedMessageId={selectedMessage?.messageId}
+          selectedMessageId={visibleSelectedMessage?.messageId}
           isLoading={isLoading}
           error={error ?? queueError}
           rabbitMqUrl={rabbitMqUrl}
@@ -252,7 +262,7 @@ export default function App() {
           onSelectMessage={selectMessage}
         />
         <MessageWorkspace
-          selectedMessage={selectedMessage}
+          selectedMessage={visibleSelectedMessage}
           editedPayload={editedPayload}
           isSubmitting={isSubmitting}
           onPayloadChange={setEditedPayload}
