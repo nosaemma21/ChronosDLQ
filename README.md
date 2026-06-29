@@ -50,7 +50,7 @@ Hosted multi-tenant deployment is a different product shape and would need separ
 If you just want to run ChronosDLQ from the published container images:
 
 ```powershell
-curl.exe -L -o chronosdlq.compose.yml https://raw.githubusercontent.com/nosaemma21/ChronosDLQ/main/docker-compose.release.yml; docker compose -f chronosdlq.compose.yml up
+curl.exe -L -o chronosdlq.compose.yml https://raw.githubusercontent.com/nosaemma21/ChronosDLQ/main/docker-compose.release.yml; docker compose -f chronosdlq.compose.yml up -d
 ```
 
 Then open:
