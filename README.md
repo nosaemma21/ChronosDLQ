@@ -1,16 +1,12 @@
-# ChronosDLQ 🩺🐇
+# ChronosDLQ
 
-ChronosDLQ is a local Dead Letter Queue surgeon dashboard.
+ChronosDLQ is a local-first Dead Letter Queue surgeon dashboard for RabbitMQ.
 
-It helps me connect to RabbitMQ, watch DLQ queues, inspect poisoned messages, edit bad payloads, replay them back to the real queue, or discard them when they are truly dead 💀
+It helps you connect to a broker, watch DLQ queues, inspect poisoned messages, edit bad JSON payloads, replay fixed messages back to the target queue, or discard traces that are no longer useful.
 
-This is built as a dev tool first.
+This is built as a developer tool first: run it close to the broker you are debugging, keep the message data on your machine, and avoid turning operational DLQ data into shared SaaS state.
 
-Not SaaS.
-Not shared multi-tenant magic.
-Just run it beside your RabbitMQ setup and fix your messages in peace.
-
-## What it does ✨
+## What It Does
 
 - Watch selected RabbitMQ queues
 - Show active poison messages
@@ -23,13 +19,11 @@ Just run it beside your RabbitMQ setup and fix your messages in peace.
 - Add audit logs for replay and discard actions
 - Keep sensitive payloads out of normal logs
 
-## Why local Docker? 🐳
+## Why Local-First?
 
-Because RabbitMQ queues are private operational data.
+RabbitMQ queues often contain private operational data, customer payloads, internal identifiers, or failure details that should stay close to the system being debugged.
 
-If this was hosted as one shared public app, users could accidentally share the same backend, same DB, same queue state, or same watched message index. That needs proper auth, tenant isolation, permission boundaries, and separate config per user.
-
-So for now, ChronosDLQ is meant to run locally:
+ChronosDLQ is designed to run as a local Docker tool so each developer or team can have an isolated UI, API, database, and broker connection. That keeps the workflow simple and avoids mixing queue state across users.
 
 ```text
 your machine
@@ -39,9 +33,9 @@ your machine
   -> your RabbitMQ
 ```
 
-Each developer gets their own app and their own DB.
+Hosted multi-tenant deployment is a different product shape and would need separate decisions around auth, tenant isolation, credentials, auditing, and data retention. This project intentionally starts with the local developer workflow.
 
-## Stack 🧱
+## Stack
 
 - .NET API
 - React + Vite UI
@@ -51,9 +45,9 @@ Each developer gets their own app and their own DB.
 - Serilog
 - EF Core
 
-## Run with Docker 🚀
+## Run Without Cloning
 
-If you just want to run ChronosDLQ without cloning the repo:
+If you just want to run ChronosDLQ from the published container images:
 
 ```powershell
 docker compose -f https://raw.githubusercontent.com/nosaemma21/ChronosDLQ/main/docker-compose.release.yml up
@@ -65,7 +59,9 @@ Then open:
 http://localhost:5173
 ```
 
-If you cloned the repo and want to build from source, run this from the project root:
+## Run From Source
+
+If you cloned the repo and want to build the containers locally:
 
 ```powershell
 docker compose up --build
@@ -77,7 +73,9 @@ Then open:
 http://localhost:5173
 ```
 
-RabbitMQ Management UI is available at:
+## Local RabbitMQ
+
+The bundled RabbitMQ Management UI is available at:
 
 ```text
 http://localhost:15672
@@ -95,9 +93,9 @@ In ChronosDLQ, connect with:
 amqp://localhost:5672
 ```
 
-The app will handle the Docker networking part internally.
+The app handles Docker networking internally.
 
-## Useful local URLs 🔌
+## Useful Local URLs
 
 ```text
 UI:        http://localhost:5173
@@ -107,20 +105,51 @@ RabbitMQ:  http://localhost:15672
 Postgres:  localhost:5432
 ```
 
-## API keys 🔐
+## Cloud RabbitMQ
 
-For local Docker, the compose file uses simple dev keys:
+For CloudAMQP or another hosted broker, paste the full AMQP URL into ChronosDLQ:
+
+```text
+amqps://user:password@host/vhost
+```
+
+For the cleanest replay test, watch the DLQ queue, not the normal target queue.
+
+Example:
+
+```text
+watch:  my_queue.dlq
+replay: my_queue
+```
+
+If you watch the normal queue itself, ChronosDLQ will consume messages from that queue because watching is an active RabbitMQ consumer.
+
+## Local Dev Keys
+
+For local Docker, the compose file uses simple development keys:
 
 ```text
 some_api_key
 some_chronos_operator_key
 ```
 
-That is fine for local development.
+These are fine for local development. Do not expose this compose setup as a shared public service with those keys.
 
-Do not expose this as a shared public service with those keys.
+## Logs
 
-## Stop everything 🛑
+Follow all container logs:
+
+```powershell
+docker compose logs -f
+```
+
+Follow only the API logs:
+
+```powershell
+docker compose logs -f chronos-api
+```
+
+## Stop Everything
 
 ```powershell
 docker compose down
@@ -133,18 +162,3 @@ docker compose down -v
 ```
 
 That deletes the local RabbitMQ/Postgres data.
-
-## Current direction 🧭
-
-ChronosDLQ is currently a local developer tool.
-
-If it ever becomes hosted, it needs proper multi-user isolation first:
-
-- auth
-- tenant scoped queues
-- per-user RabbitMQ config
-- per-user DB/message index
-- strict replay/discard permissions
-- stronger audit trails
-
-Until then, Docker is the right home for it.
