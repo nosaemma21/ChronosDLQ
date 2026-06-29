@@ -45,4 +45,25 @@ public class RabbitMqConnectionSettingsTests
 
         Assert.Equal("https://custom-management.example.com", settings.ManagementBaseUrl);
     }
+
+    [Fact]
+    public void FromConfiguration_ShouldInferLocalManagementPortFromAmqpPort()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(
+                new Dictionary<string, string?>
+                {
+                    ["RabbitMq:ConnectionUrl"] = "amqp://localhost:5672",
+                }
+            )
+            .Build();
+
+        var settings = RabbitMqConnectionSettings.FromConfiguration(configuration);
+
+        Assert.Equal("localhost", settings.HostName);
+        Assert.Equal("guest", settings.UserName);
+        Assert.Equal("guest", settings.Password);
+        Assert.Equal("/", settings.VirtualHost);
+        Assert.Equal("http://localhost:15672", settings.ManagementBaseUrl);
+    }
 }

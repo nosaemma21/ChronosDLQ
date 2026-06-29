@@ -150,6 +150,17 @@ public sealed class RabbitMqConnectionSettings
     private static string InferManagementBaseUrl(Uri uri)
     {
         var scheme = uri.Scheme == "amqps" ? "https" : "http";
-        return $"{scheme}://{uri.Host}";
+        int? port = null;
+
+        if (uri.Scheme == "amqp" && (uri.IsDefaultPort || uri.Port == 5672))
+        {
+            port = 15672;
+        }
+        else if (!uri.IsDefaultPort)
+        {
+            port = uri.Port;
+        }
+
+        return port.HasValue ? $"{scheme}://{uri.Host}:{port.Value}" : $"{scheme}://{uri.Host}";
     }
 }

@@ -102,6 +102,12 @@ export function MessageStream({
           </div>
         ) : null}
 
+        {error ? (
+          <div className="border-2 border-[#704f1d] bg-[#2b1f12] px-3 py-2 font-mono text-xs text-[#ffcf5c]">
+            {error}
+          </div>
+        ) : null}
+
         <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 border-t-2 border-[#263e56] pt-3">
           <input
             list="available-queues"
