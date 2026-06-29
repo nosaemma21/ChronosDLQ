@@ -221,6 +221,7 @@ app.MapControllers();
 
 try
 {
+    await ApplyDatabaseMigrationsAsync(app);
     Log.Information("Starting ChronosDLQ host...");
     app.Run();
 }
@@ -231,6 +232,37 @@ catch (Exception ex)
 finally
 {
     Log.CloseAndFlush();
+}
+
+static async Task ApplyDatabaseMigrationsAsync(WebApplication app)
+{
+    const int maxAttempts = 10;
+
+    using var scope = app.Services.CreateScope();
+    var dbContextFactory = scope.ServiceProvider.GetRequiredService<
+        IDbContextFactory<ChronosDbContext>
+    >();
+
+    for (var attempt = 1; attempt <= maxAttempts; attempt++)
+    {
+        try
+        {
+            await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+            await dbContext.Database.MigrateAsync();
+            Log.Information("Chronos database migrations applied.");
+            return;
+        }
+        catch (Exception ex) when (attempt < maxAttempts)
+        {
+            Log.Warning(
+                ex,
+                "Chronos database migration attempt {Attempt}/{MaxAttempts} failed. Retrying...",
+                attempt,
+                maxAttempts
+            );
+            await Task.Delay(TimeSpan.FromSeconds(3));
+        }
+    }
 }
 
 public partial class Program { }

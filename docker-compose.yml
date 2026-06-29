@@ -1,4 +1,37 @@
 services:
+  chronos-ui:
+    build:
+      context: .
+      dockerfile: ChronosDLQ.UI/Dockerfile
+    container_name: chronos-ui
+    ports:
+      - "5173:80"
+    depends_on:
+      - chronos-api
+
+  chronos-api:
+    build:
+      context: .
+      dockerfile: ChronosDLQ.App/Dockerfile
+    container_name: chronos-api
+    ports:
+      - "5103:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__ChronosDb: Host=chronos-postgres;Port=5432;Database=chronos_dlq;Username=chronos;Password=chronos_dev_password
+      RabbitMq__HostName: chronos-rabbitmq
+      RabbitMq__ManagementBaseUrl: http://chronos-rabbitmq:15672
+      RabbitMq__UserName: guest
+      RabbitMq__Password: guest
+      RabbitMq__VirtualHost: /
+      RabbitMq__LocalhostAlias: host.docker.internal
+      Chronos__ApiKey: some_api_key
+      Chronos__OperatorKey: some_chronos_operator_key
+      Cors__AllowedOrigins__0: http://localhost:5173
+    depends_on:
+      - chronos-postgres
+      - chronos-rabbitmq
+
   chronos-rabbitmq:
     image: rabbitmq:4-management
     container_name: chronos-rabbitmq

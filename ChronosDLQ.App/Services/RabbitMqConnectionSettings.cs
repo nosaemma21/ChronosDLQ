@@ -53,7 +53,11 @@ public sealed class RabbitMqConnectionSettings
 
         if (!string.IsNullOrWhiteSpace(connectionUrl))
         {
-            return FromConnectionUrl(connectionUrl, configuration["RabbitMq:ManagementBaseUrl"]);
+            return FromConnectionUrl(
+                connectionUrl,
+                configuration["RabbitMq:ManagementBaseUrl"],
+                configuration["RabbitMq:LocalhostAlias"]
+            );
         }
 
         return new RabbitMqConnectionSettings(
@@ -93,7 +97,8 @@ public sealed class RabbitMqConnectionSettings
 
     public static RabbitMqConnectionSettings FromConnectionUrl(
         string connectionUrl,
-        string? configuredManagementBaseUrl
+        string? configuredManagementBaseUrl,
+        string? localhostAlias = null
     )
     {
         if (!Uri.TryCreate(connectionUrl, UriKind.Absolute, out var uri))
@@ -106,18 +111,33 @@ public sealed class RabbitMqConnectionSettings
             throw new InvalidOperationException("RabbitMQ connection URL must use amqp or amqps.");
         }
 
-        var (userName, password) = ParseCredentials(uri.UserInfo);
-        var virtualHost = ParseVirtualHost(uri);
+        var effectiveUri = ApplyLocalhostAlias(uri, localhostAlias);
+        var (userName, password) = ParseCredentials(effectiveUri.UserInfo);
+        var virtualHost = ParseVirtualHost(effectiveUri);
 
         return new RabbitMqConnectionSettings(
-            connectionUrl,
-            uri.Host,
-            uri.IsDefaultPort ? null : uri.Port,
+            effectiveUri.ToString(),
+            effectiveUri.Host,
+            effectiveUri.IsDefaultPort ? null : effectiveUri.Port,
             userName,
             password,
             virtualHost,
-            configuredManagementBaseUrl ?? InferManagementBaseUrl(uri)
+            configuredManagementBaseUrl ?? InferManagementBaseUrl(effectiveUri)
         );
+    }
+
+    private static Uri ApplyLocalhostAlias(Uri uri, string? localhostAlias)
+    {
+        if (
+            string.IsNullOrWhiteSpace(localhostAlias)
+            || uri.Host is not ("localhost" or "127.0.0.1")
+        )
+        {
+            return uri;
+        }
+
+        var builder = new UriBuilder(uri) { Host = localhostAlias };
+        return builder.Uri;
     }
 
     private static (string UserName, string Password) ParseCredentials(string userInfo)
