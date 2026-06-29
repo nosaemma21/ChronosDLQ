@@ -67,7 +67,7 @@ export function MessageWorkspace({
               <h2 className="pixel-title text-3xl font-bold text-[#f6f1dc]">
                 Surgical Inspection Module
               </h2>
-              <p className="mt-1 truncate font-mono text-sm text-[#d8e6f2]">
+              <p className="mt-1 break-all font-mono text-sm leading-relaxed text-[#d8e6f2]">
                 Target Trace Boundary: {selectedMessage.messageId}
               </p>
             </div>

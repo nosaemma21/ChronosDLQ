@@ -29,6 +29,7 @@ function formatTraceTime(timestamp: string) {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
+    hour12: false,
   });
 }
 
@@ -207,7 +208,7 @@ export function MessageStream({
           </div>
         ) : (
           <div className="min-w-0 overflow-hidden border-2 border-[#263e56] bg-[#07111d]">
-            <div className="grid grid-cols-[112px_minmax(150px,0.9fr)_minmax(0,1.3fr)_68px] border-b-2 border-[#263e56] bg-[#102034] font-mono text-[10px] font-bold uppercase text-[#8fb4dc]">
+            <div className="grid grid-cols-[112px_minmax(150px,0.9fr)_minmax(0,1.3fr)_78px] border-b-2 border-[#263e56] bg-[#102034] font-mono text-[10px] font-bold uppercase text-[#8fb4dc]">
               <div className="border-r-2 border-[#263e56] px-2 py-1.5">
                 Queue
               </div>
@@ -229,7 +230,7 @@ export function MessageStream({
                     type="button"
                     key={message.messageId}
                     onClick={() => onSelectMessage(message)}
-                    className={`grid h-10 w-full grid-cols-[112px_minmax(150px,0.9fr)_minmax(0,1.3fr)_68px] text-left font-mono text-xs transition ${
+                    className={`grid h-10 w-full grid-cols-[112px_minmax(150px,0.9fr)_minmax(0,1.3fr)_78px] text-left font-mono text-xs transition ${
                       isSelected
                         ? "bg-[#14233a] text-[#f6f1dc] outline-2 outline-[#d13f4d]"
                         : "bg-[#09121e] text-[#cfe3f5] hover:bg-[#102034]"
@@ -244,7 +245,7 @@ export function MessageStream({
                     <span className="truncate border-r-2 border-[#17283c] px-2 py-2 text-[#9fb7cc]">
                       {message.exceptionMessage ?? "Unknown DLQ execution"}
                     </span>
-                    <span className="px-2 py-2 text-right text-[10px] text-[#8aa9c5]">
+                    <span className="px-2 py-2 text-right text-[10px] whitespace-nowrap text-[#8aa9c5]">
                       {formatTraceTime(message.timestamp)}
                     </span>
                   </button>
