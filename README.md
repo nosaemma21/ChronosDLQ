@@ -53,7 +53,19 @@ Each developer gets their own app and their own DB.
 
 ## Run with Docker 🚀
 
-From the project root:
+If you just want to run ChronosDLQ without cloning the repo:
+
+```powershell
+docker compose -f https://raw.githubusercontent.com/nosaemma21/ChronosDLQ/main/docker-compose.release.yml up
+```
+
+Then open:
+
+```text
+http://localhost:5173
+```
+
+If you cloned the repo and want to build from source, run this from the project root:
 
 ```powershell
 docker compose up --build

@@ -1,0 +1,58 @@
+services:
+  chronos-ui:
+    image: ghcr.io/nosaemma21/chronosdlq-ui:latest
+    container_name: chronos-ui
+    ports:
+      - "5173:80"
+    depends_on:
+      - chronos-api
+
+  chronos-api:
+    image: ghcr.io/nosaemma21/chronosdlq-api:latest
+    container_name: chronos-api
+    ports:
+      - "5103:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__ChronosDb: Host=chronos-postgres;Port=5432;Database=chronos_dlq;Username=chronos;Password=chronos_dev_password
+      RabbitMq__HostName: chronos-rabbitmq
+      RabbitMq__ManagementBaseUrl: http://chronos-rabbitmq:15672
+      RabbitMq__UserName: guest
+      RabbitMq__Password: guest
+      RabbitMq__VirtualHost: /
+      RabbitMq__LocalhostAlias: chronos-rabbitmq
+      Chronos__ApiKey: some_api_key
+      Chronos__OperatorKey: some_chronos_operator_key
+      Chronos__ApplyMigrationsOnStartup: true
+      Cors__AllowedOrigins__0: http://localhost:5173
+    depends_on:
+      - chronos-postgres
+      - chronos-rabbitmq
+
+  chronos-rabbitmq:
+    image: rabbitmq:4-management
+    container_name: chronos-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    volumes:
+      - chronos-rabbitmq-data:/var/lib/rabbitmq
+
+  chronos-postgres:
+    image: postgres:17
+    container_name: chronos-postgres
+    environment:
+      POSTGRES_DB: chronos_dlq
+      POSTGRES_USER: chronos
+      POSTGRES_PASSWORD: chronos_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - chronos-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  chronos-rabbitmq-data:
+  chronos-postgres-data:
