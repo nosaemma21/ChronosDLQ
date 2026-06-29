@@ -59,7 +59,7 @@ export function MessageWorkspace({
   const anyActiveNetworkAction = isSubmitting || isDiscarding;
 
   return (
-    <section className="pixel-panel col-span-8 flex min-h-0 min-w-0 flex-col gap-4 overflow-hidden p-4">
+    <section className="pixel-panel col-span-7 flex min-h-0 min-w-0 flex-col gap-4 overflow-hidden p-4">
       {selectedMessage ? (
         <>
           <div className="flex shrink-0 items-start justify-between gap-4 border-b-2 border-[#263e56] pb-3">

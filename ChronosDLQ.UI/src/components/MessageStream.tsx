@@ -1,5 +1,3 @@
-import { useRef } from "react";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   type DeadLetterMessage,
   type RabbitMqQueueInfo,
@@ -58,21 +56,14 @@ export function MessageStream({
   onUnwatchQueue,
   onSelectMessage,
 }: MessageStreamProps) {
-  const streamParentRef = useRef<HTMLDivElement | null>(null);
   const dlqQueues = availableQueues.filter((queue) =>
     queue.name.endsWith(".dlq"),
   );
   const isBrokerConfigured = rabbitMqUrl.trim().length > 0;
-  const virtualizer = useVirtualizer({
-    count: messages.length,
-    getScrollElement: () => streamParentRef.current,
-    estimateSize: () => 42,
-    overscan: 10,
-  });
 
   return (
-    <section className="col-span-4 flex min-h-0 flex-col gap-3 overflow-hidden">
-      <div className="pixel-panel shrink-0 space-y-3 p-3">
+    <section className="col-span-5 flex min-h-0 flex-col gap-3 overflow-hidden">
+      <div className="pixel-panel shrink-0 space-y-2 p-3">
         <div className="flex items-center justify-between gap-3">
           <div className="pixel-title text-xl font-bold text-[#f6f1dc] uppercase">
             Queue Watchlist
@@ -119,7 +110,7 @@ export function MessageStream({
           </div>
         ) : null}
 
-        <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 border-t-2 border-[#263e56] pt-3">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 border-t-2 border-[#263e56] pt-2">
           <input
             list="available-queues"
             value={queueDraft}
@@ -154,7 +145,7 @@ export function MessageStream({
         </div>
 
         {dlqQueues.length > 0 ? (
-          <div className="flex max-h-24 flex-wrap gap-2 overflow-y-auto pr-1">
+          <div className="flex max-h-16 flex-wrap gap-2 overflow-y-auto pr-1">
             {dlqQueues.map((queue) => (
               <button
                 type="button"
@@ -168,7 +159,7 @@ export function MessageStream({
           </div>
         ) : null}
 
-        <div className="flex max-h-20 flex-wrap gap-2 overflow-y-auto pr-1">
+        <div className="flex max-h-14 flex-wrap gap-2 overflow-y-auto pr-1">
           {watchedQueues.length === 0 ? (
             <span className="font-mono text-xs text-slate-600">
               No queues watched yet.
@@ -193,10 +184,7 @@ export function MessageStream({
         Active Poison Stream ({messages.length})
       </div>
 
-      <div
-        ref={streamParentRef}
-        className="pixel-panel min-h-0 flex-1 overflow-y-auto p-2"
-      >
+      <div className="pixel-panel min-h-0 flex-1 overflow-y-auto p-1.5">
         {!isBrokerConfigured ? (
           <div className="border-2 border-dashed border-[#263e56] p-8 text-center font-mono text-xs text-[#6d8fb0]">
             Link RabbitMQ to start streaming traces.
@@ -219,7 +207,7 @@ export function MessageStream({
           </div>
         ) : (
           <div className="min-w-0 overflow-hidden border-2 border-[#263e56] bg-[#07111d]">
-            <div className="grid grid-cols-[96px_minmax(120px,1fr)_minmax(120px,1.2fr)_64px] border-b-2 border-[#263e56] bg-[#102034] font-mono text-[10px] font-bold uppercase text-[#8fb4dc]">
+            <div className="grid grid-cols-[112px_minmax(150px,0.9fr)_minmax(0,1.3fr)_68px] border-b-2 border-[#263e56] bg-[#102034] font-mono text-[10px] font-bold uppercase text-[#8fb4dc]">
               <div className="border-r-2 border-[#263e56] px-2 py-1.5">
                 Queue
               </div>
@@ -232,29 +220,20 @@ export function MessageStream({
               <div className="px-2 py-1.5 text-right">Time</div>
             </div>
 
-            <div
-              className="relative"
-              style={{ height: `${virtualizer.getTotalSize()}px` }}
-            >
-              {virtualizer.getVirtualItems().map((virtualRow) => {
-                const message = messages[virtualRow.index];
+            <div className="divide-y-2 divide-[#17283c]">
+              {messages.map((message) => {
                 const isSelected = selectedMessageId === message.messageId;
 
                 return (
                   <button
                     type="button"
                     key={message.messageId}
-                    ref={virtualizer.measureElement}
-                    data-index={virtualRow.index}
                     onClick={() => onSelectMessage(message)}
-                    className={`absolute top-0 left-0 grid w-full grid-cols-[96px_minmax(120px,1fr)_minmax(120px,1.2fr)_64px] border-b-2 text-left font-mono text-xs transition ${
+                    className={`grid h-10 w-full grid-cols-[112px_minmax(150px,0.9fr)_minmax(0,1.3fr)_68px] text-left font-mono text-xs transition ${
                       isSelected
-                        ? "border-[#d13f4d] bg-[#14233a] text-[#f6f1dc]"
-                        : "border-[#17283c] bg-[#09121e] text-[#cfe3f5] hover:bg-[#102034]"
+                        ? "bg-[#14233a] text-[#f6f1dc] outline-2 outline-[#d13f4d]"
+                        : "bg-[#09121e] text-[#cfe3f5] hover:bg-[#102034]"
                     }`}
-                    style={{
-                      transform: `translateY(${virtualRow.start}px)`,
-                    }}
                   >
                     <span className="truncate border-r-2 border-[#17283c] px-2 py-2 font-bold text-[#ff7b86]">
                       {message.queueName}
