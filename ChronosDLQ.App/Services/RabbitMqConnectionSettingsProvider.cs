@@ -33,7 +33,8 @@ public class RabbitMqConnectionSettingsProvider : IRabbitMqConnectionSettingsPro
             return Task.FromResult<RabbitMqConnectionSettings?>(
                 RabbitMqConnectionSettings.FromConnectionUrl(
                     requestConnectionUrl,
-                    requestManagementUrl
+                    requestManagementUrl,
+                    _configuration["RabbitMq:LocalhostAlias"]
                 )
             );
         }

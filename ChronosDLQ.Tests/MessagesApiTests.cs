@@ -19,16 +19,33 @@ public class MessagesApiTests : IClassFixture<WebApplicationFactory<Program>>
 
     public MessagesApiTests(WebApplicationFactory<Program> factory)
     {
+        var messageIndexStore = new MessageIndexStore();
+
+        _factory = factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureTestServices(services =>
+            {
+                var descriptors = services
+                    .Where(descriptor => descriptor.ServiceType == typeof(IMessageIndexStore))
+                    .ToList();
+
+                foreach (var descriptor in descriptors)
+                {
+                    services.Remove(descriptor);
+                }
+
+                services.AddSingleton<IMessageIndexStore>(messageIndexStore);
+            });
+        });
+
         // in-memory client to live api
-        _client = factory.CreateClient();
+        _client = _factory.CreateClient();
 
         // no authorization worked without headers present even for test
         AddChronosTestHeaders(_client);
 
         //  single instance of store
-        _store = factory.Services.GetRequiredService<IMessageIndexStore>();
-
-        _factory = factory;
+        _store = messageIndexStore;
     }
 
     [Fact]

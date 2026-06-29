@@ -221,7 +221,11 @@ app.MapControllers();
 
 try
 {
-    await ApplyDatabaseMigrationsAsync(app);
+    if (builder.Configuration.GetValue("Chronos:ApplyMigrationsOnStartup", false))
+    {
+        await ApplyDatabaseMigrationsAsync(app);
+    }
+
     Log.Information("Starting ChronosDLQ host...");
     app.Run();
 }

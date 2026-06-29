@@ -66,4 +66,23 @@ public class RabbitMqConnectionSettingsTests
         Assert.Equal("/", settings.VirtualHost);
         Assert.Equal("http://localhost:15672", settings.ManagementBaseUrl);
     }
+
+    [Fact]
+    public void FromConfiguration_ShouldApplyLocalhostAlias()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(
+                new Dictionary<string, string?>
+                {
+                    ["RabbitMq:ConnectionUrl"] = "amqp://localhost:5672",
+                    ["RabbitMq:LocalhostAlias"] = "chronos-rabbitmq",
+                }
+            )
+            .Build();
+
+        var settings = RabbitMqConnectionSettings.FromConfiguration(configuration);
+
+        Assert.Equal("chronos-rabbitmq", settings.HostName);
+        Assert.Equal("http://chronos-rabbitmq:15672", settings.ManagementBaseUrl);
+    }
 }
