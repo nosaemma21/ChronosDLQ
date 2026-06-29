@@ -117,7 +117,7 @@ export function MessageStream({
             value={queueDraft}
             onChange={(event) => onQueueDraftChange(event.target.value)}
             placeholder="orders.dlq"
-            className="min-w-0 border-2 border-[#52718e] bg-[#09121e] px-3 py-2 font-mono text-sm text-[#f6f1dc] shadow-[inset_0_0_0_2px_#020617] outline-none focus:border-[#6af052]"
+            className="min-w-0 border-2 border-[#52718e] bg-[#09121e] px-3 py-2 font-mono text-xs text-[#f6f1dc] shadow-[inset_0_0_0_2px_#020617] outline-none focus:border-[#6af052]"
           />
           <datalist id="available-queues">
             {availableQueues.map((queue) => (
