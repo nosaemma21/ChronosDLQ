@@ -4,7 +4,6 @@ import {
   type DeadLetterMessage,
   type RabbitMqQueueInfo,
 } from "../types";
-import { MessageCard } from "./MessageCard";
 
 interface MessageStreamProps {
   messages: DeadLetterMessage[];
@@ -25,6 +24,18 @@ interface MessageStreamProps {
   onWatchQueue: () => void;
   onUnwatchQueue: (queueName: string) => void;
   onSelectMessage: (message: DeadLetterMessage) => void;
+}
+
+function formatTraceTime(timestamp: string) {
+  return new Date(timestamp).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function formatTraceId(messageId: string) {
+  return messageId.length > 12 ? `${messageId.slice(0, 12)}...` : messageId;
 }
 
 export function MessageStream({
@@ -55,8 +66,8 @@ export function MessageStream({
   const virtualizer = useVirtualizer({
     count: messages.length,
     getScrollElement: () => streamParentRef.current,
-    estimateSize: () => 104,
-    overscan: 6,
+    estimateSize: () => 42,
+    overscan: 10,
   });
 
   return (
@@ -184,7 +195,7 @@ export function MessageStream({
 
       <div
         ref={streamParentRef}
-        className="pixel-panel min-h-0 flex-1 overflow-y-auto p-3"
+        className="pixel-panel min-h-0 flex-1 overflow-y-auto p-2"
       >
         {!isBrokerConfigured ? (
           <div className="border-2 border-dashed border-[#263e56] p-8 text-center font-mono text-xs text-[#6d8fb0]">
@@ -207,31 +218,60 @@ export function MessageStream({
             Watched queues are clear.
           </div>
         ) : (
-          <div
-            className="relative"
-            style={{ height: `${virtualizer.getTotalSize()}px` }}
-          >
-            {virtualizer.getVirtualItems().map((virtualRow) => {
-              const message = messages[virtualRow.index];
+          <div className="min-w-0 overflow-hidden border-2 border-[#263e56] bg-[#07111d]">
+            <div className="grid grid-cols-[96px_minmax(120px,1fr)_minmax(120px,1.2fr)_64px] border-b-2 border-[#263e56] bg-[#102034] font-mono text-[10px] font-bold uppercase text-[#8fb4dc]">
+              <div className="border-r-2 border-[#263e56] px-2 py-1.5">
+                Queue
+              </div>
+              <div className="border-r-2 border-[#263e56] px-2 py-1.5">
+                Trace
+              </div>
+              <div className="border-r-2 border-[#263e56] px-2 py-1.5">
+                Reason
+              </div>
+              <div className="px-2 py-1.5 text-right">Time</div>
+            </div>
 
-              return (
-                <div
-                  key={message.messageId}
-                  ref={virtualizer.measureElement}
-                  data-index={virtualRow.index}
-                  className="absolute top-0 left-0 w-full pb-3"
-                  style={{
-                    transform: `translateY(${virtualRow.start}px)`,
-                  }}
-                >
-                  <MessageCard
-                    message={message}
-                    isSelected={selectedMessageId === message.messageId}
-                    onSelect={onSelectMessage}
-                  />
-                </div>
-              );
-            })}
+            <div
+              className="relative"
+              style={{ height: `${virtualizer.getTotalSize()}px` }}
+            >
+              {virtualizer.getVirtualItems().map((virtualRow) => {
+                const message = messages[virtualRow.index];
+                const isSelected = selectedMessageId === message.messageId;
+
+                return (
+                  <button
+                    type="button"
+                    key={message.messageId}
+                    ref={virtualizer.measureElement}
+                    data-index={virtualRow.index}
+                    onClick={() => onSelectMessage(message)}
+                    className={`absolute top-0 left-0 grid w-full grid-cols-[96px_minmax(120px,1fr)_minmax(120px,1.2fr)_64px] border-b-2 text-left font-mono text-xs transition ${
+                      isSelected
+                        ? "border-[#d13f4d] bg-[#14233a] text-[#f6f1dc]"
+                        : "border-[#17283c] bg-[#09121e] text-[#cfe3f5] hover:bg-[#102034]"
+                    }`}
+                    style={{
+                      transform: `translateY(${virtualRow.start}px)`,
+                    }}
+                  >
+                    <span className="truncate border-r-2 border-[#17283c] px-2 py-2 font-bold text-[#ff7b86]">
+                      {message.queueName}
+                    </span>
+                    <span className="truncate border-r-2 border-[#17283c] px-2 py-2 text-[#f6f1dc]">
+                      {formatTraceId(message.messageId)}
+                    </span>
+                    <span className="truncate border-r-2 border-[#17283c] px-2 py-2 text-[#9fb7cc]">
+                      {message.exceptionMessage ?? "Unknown DLQ execution"}
+                    </span>
+                    <span className="px-2 py-2 text-right text-[10px] text-[#8aa9c5]">
+                      {formatTraceTime(message.timestamp)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
